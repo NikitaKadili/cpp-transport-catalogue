@@ -1,1 +1,25 @@
-// РјРµСЃС‚Рѕ РґР»СЏ РІР°С€РµРіРѕ РєРѕРґР°
+#pragma once
+
+#include "transport_catalogue.h"
+
+#include <string_view>
+
+namespace transport_catalogue::iofuncs {
+
+// Запуск чтения запросов на добавление данных
+void ReadInputRequests(TransportCatalogue& tc);
+
+namespace detail {
+
+// Парсинг строки-запроса на добавление остановки
+TransportCatalogue::Stop ParseStopInputQuery(std::string_view stop_query, TransportCatalogue& tc);
+// Парсинг строки-запроса на добавление автобусного маршрута
+TransportCatalogue::Route ParseRouteInputQuery(std::string_view route_query, TransportCatalogue& tc);
+// Парсинг строки-запроса на добавление расстояния между остановками
+std::pair<std::string, double> ParseStopDistanceQuery(std::string_view query);
+
+// Принимает пустую строку при вводе
+void PassEmptyLine();
+
+} // namespace detail
+} // namespace transport_catalogue::iofuncs
