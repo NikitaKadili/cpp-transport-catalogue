@@ -10,19 +10,19 @@ namespace transport_catalogue {
 // Добавление остановки в базу
 void TransportCatalogue::AddStop(const Stop& stop) {
 	// Находим указатель на остановку, если она была добавлена ранее
-	Stop* ptr = FindStop(stop.name_);
+	Stop* ptr = FindStop(stop.name);
 
 	// Если остановка была добавлена ранее, обновляем координаты
 	if (ptr != nullptr) {
-		ptr->longitude_ = stop.longitude_;
-		ptr->latitude_ = stop.latitude_;
+		ptr->longitude = stop.longitude;
+		ptr->latitude = stop.latitude;
 		return;
 	}
 
 	stops_.push_back(stop);
 	ptr = &stops_.back();
-	stops_to_structs_[ptr->name_] = ptr;
-	stops_to_routes_[ptr->name_] = {};
+	stops_to_structs_[ptr->name] = ptr;
+	stops_to_routes_[ptr->name] = {};
 }
 
 // Добавление фактического расстояния между остановками
@@ -55,36 +55,36 @@ void TransportCatalogue::AddActualDistance(string_view from, string_view to, dou
 void TransportCatalogue::AddRoute(const Route& route) {
 	// Подсчет количества уникальных остановок и дистанции маршрута
 	unordered_set<Stop*> unique_stops;
-	unique_stops.insert(route.stops_.front());
+	unique_stops.insert(route.stops.front());
 
 	double geo_distance = 0.0; // Географическое расстояние по координатам
 	double fact_distance = 0; // Фактическое расстояние
-	for (size_t i = 1; i < route.stops_.size(); ++i) {
-		unique_stops.insert(route.stops_.at(i));
+	for (size_t i = 1; i < route.stops.size(); ++i) {
+		unique_stops.insert(route.stops.at(i));
 
-		geo_distance += CountDistanceBetweenStops(route.stops_.at(i - 1), route.stops_.at(i));
+		geo_distance += CountDistanceBetweenStops(route.stops.at(i - 1), route.stops.at(i));
 
-		auto from_ptr = FindStop(route.stops_.at(i - 1)->name_);
-		auto to_ptr = FindStop(route.stops_.at(i)->name_);
+		auto from_ptr = FindStop(route.stops.at(i - 1)->name);
+		auto to_ptr = FindStop(route.stops.at(i)->name);
 		fact_distance += stops_pairs_to_distances_[{from_ptr, to_ptr }];
 	}
 
 	routes_.push_back(route);
 	Route* ptr = &routes_.back();
-	routes_to_structs_[ptr->number_] = ptr;
+	routes_to_structs_[ptr->number] = ptr;
 
 	// Добавляем указатель на маршрут в словарь stops_to_routes_
 	for (Stop* ptr_to_stop : unique_stops) {
-		stops_to_routes_.at(ptr_to_stop->name_).insert(ptr->number_);
+		stops_to_routes_.at(ptr_to_stop->name).insert(ptr->number);
 	}
 
 	// Вносим общую информацию по маршруту в routes_to_routes_info_
-	routes_to_routes_info_[ptr->number_]
-		= { route.stops_.size(), unique_stops.size(), geo_distance, fact_distance };
+	routes_to_routes_info_[ptr->number]
+		= { route.stops.size(), unique_stops.size(), geo_distance, fact_distance };
 }
 
-// Поиск остановки по имени
-TransportCatalogue::Stop* TransportCatalogue::FindStop(string_view name) {
+// Поиск остановки по имени (константный)
+TransportCatalogue::Stop* TransportCatalogue::FindStop(string_view name) const {
 	auto it = stops_to_structs_.find(name);
 	if (it != stops_to_structs_.end()) {
 		return it->second;
@@ -93,8 +93,8 @@ TransportCatalogue::Stop* TransportCatalogue::FindStop(string_view name) {
 	return nullptr;
 }
 
-// Поиск маршрута по имени
-TransportCatalogue::Route* TransportCatalogue::FindRoute(string_view number) {
+// Поиск маршрута по имени (константный)
+TransportCatalogue::Route* TransportCatalogue::FindRoute(string_view number) const {
 	auto it = routes_to_structs_.find(number);
 	if (it != routes_to_structs_.end()) {
 		return it->second;
@@ -126,8 +126,8 @@ optional<set<string_view>> TransportCatalogue::GetRoutesOnStopInfo(string_view n
 // Возвращает расстояние между координатами остановки from и to
 double TransportCatalogue::CountDistanceBetweenStops(Stop* from, Stop* to) const {
 	return geo::ComputeDistance(
-		{ from->latitude_, from->longitude_ },
-		{ to->latitude_, to->longitude_ }
+		{ from->latitude, from->longitude },
+		{ to->latitude, to->longitude }
 	);
 }
 

@@ -4,8 +4,14 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 using namespace std;
+
+// Парсинг строки-запроса на получение информации о маршруте
+void ParseRouteOutputQuery(string_view query, transport_catalogue::TransportCatalogue& tc);
+// Парсинг строки-запроса на получение информации о остановке
+void ParseStopOutputQuery(string_view query, transport_catalogue::TransportCatalogue& tc);
 
 namespace transport_catalogue::iofuncs {
 
@@ -19,18 +25,18 @@ void ReadOutputRequests(TransportCatalogue& tc) {
 		getline(cin, input);
 
 		if (input.find("Bus") == 0) {
-			detail::ParseRouteOutputQuery(input, tc);
+			ParseRouteOutputQuery(input, tc);
 		}
 		else if (input.find("Stop") == 0) {
-			detail::ParseStopOutputQuery(input, tc);
+			ParseStopOutputQuery(input, tc);
 		}
 	}
 }
 
-namespace detail {
+} // namespace transport_catalogue::iofuncs
 
 // Парсинг строки-запроса на получение информации о маршруте
-void ParseRouteOutputQuery(string_view query, TransportCatalogue& tc) {
+void ParseRouteOutputQuery(string_view query, transport_catalogue::TransportCatalogue& tc) {
 	// Отсекаем у строки первые 4 символа "Bus ", оставшиеся
 	// символы будут наименованием маршрута
 	query.remove_prefix(4);
@@ -45,15 +51,15 @@ void ParseRouteOutputQuery(string_view query, TransportCatalogue& tc) {
 	}
 	else {
 		// Иначе - выводим общую информацию о маршруте
-		cout << result.value().total_stops_ << " stops on route, "
-			<< result.value().unique_stops_ << " unique stops, "
-			<< result.value().fact_distance_ << " route length, "
-			<< (result.value().fact_distance_ / result.value().geo_distance_) << " curvature" << endl;
+		cout << result.value().total_stops << " stops on route, "
+			<< result.value().unique_stops << " unique stops, "
+			<< result.value().fact_distance << " route length, "
+			<< (result.value().fact_distance / result.value().geo_distance) << " curvature" << endl;
 	}
 }
 
 // Парсинг строки-запроса на получение информации о остановке
-void ParseStopOutputQuery(string_view query, TransportCatalogue& tc) {
+void ParseStopOutputQuery(string_view query, transport_catalogue::TransportCatalogue& tc) {
 	// Отсекаем у строки первые 5 символов "Stop ", оставшиеся
 	// символы будут наименованием остановки
 	query.remove_prefix(5);
@@ -83,6 +89,3 @@ void ParseStopOutputQuery(string_view query, TransportCatalogue& tc) {
 		cout << buses << endl;
 	}
 }
-
-} // namespace detail
-} // namespace transport_catalogue::iofuncs

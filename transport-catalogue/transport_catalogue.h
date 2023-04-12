@@ -15,23 +15,23 @@ class TransportCatalogue {
 public:
 	// Структура "остановка", содержит: название, широту и долготу
 	struct Stop {
-		std::string name_;
-		double latitude_;
-		double longitude_;
+		std::string name;
+		double latitude;
+		double longitude;
 	};
 
 	// Структура "маршрут", содержит: номер маршрута, вектор указателей на остановки
 	struct Route {
-		std::string number_;
-		std::vector<Stop*> stops_;
+		std::string number;
+		std::vector<Stop*> stops;
 	};
 
 	// Сокращенное название кортежа с информацией о маршруте
 	struct RouteInfo {
-		size_t total_stops_;
-		size_t unique_stops_;
-		double geo_distance_;
-		double fact_distance_;
+		size_t total_stops;
+		size_t unique_stops;
+		double geo_distance;
+		double fact_distance;
 	};
 
 	// Добавление остановки в базу
@@ -42,9 +42,9 @@ public:
 	void AddRoute(const Route& route);
 
 	// Поиск остановки по имени
-	Stop* FindStop(std::string_view name);
+	Stop* FindStop(std::string_view name) const;
 	// Поиск маршрута по имени
-	Route* FindRoute(std::string_view number);
+	Route* FindRoute(std::string_view number) const;
 
 	// Получение основной информации о маршруте
 	std::optional<RouteInfo> GetRouteInfo(std::string_view number) const;

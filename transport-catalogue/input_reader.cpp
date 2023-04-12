@@ -4,10 +4,19 @@
 #include <deque>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
 using namespace std;
+using namespace transport_catalogue;
+
+// Парсинг строки-запроса на добавление остановки
+TransportCatalogue::Stop ParseStopInputQuery(string_view stop_query, TransportCatalogue& tc);
+// Парсинг строки-запроса на добавление автобусного маршрута
+TransportCatalogue::Route ParseRouteInputQuery(string_view route_query, TransportCatalogue& tc);
+// Парсинг строки-запроса на добавление расстояния между остановками
+pair<string, double> ParseStopDistanceQuery(string_view query);
 
 namespace transport_catalogue::iofuncs {
 
@@ -30,17 +39,26 @@ void ReadInputRequests(TransportCatalogue& tc) {
 			add_route_requests.push_back(words.back());
 		}
 		else if (input.find("Stop") == 0) {
-			tc.AddStop(detail::ParseStopInputQuery(words.back(), tc));
+			tc.AddStop(ParseStopInputQuery(words.back(), tc));
 		}
 	}
 
 	// Итерируемся по сохраненным запросам на добавление маршрутов
 	for (string_view add_bus_request : add_route_requests) {
-		tc.AddRoute(detail::ParseRouteInputQuery(add_bus_request, tc));
+		tc.AddRoute(ParseRouteInputQuery(add_bus_request, tc));
 	}
 }
 
 namespace detail {
+
+// Принимает пустую строку при вводе
+void PassEmptyLine() {
+	string line;
+	getline(cin, line);
+}
+
+} // namespace detail
+} // namespace transport_catalogue::iofuncs
 
 // Парсинг строки-запроса на добавление остановки
 TransportCatalogue::Stop ParseStopInputQuery(string_view stop_query, TransportCatalogue& tc) {
@@ -139,12 +157,3 @@ pair<string, double> ParseStopDistanceQuery(string_view query) {
 
 	return { move(name), move(distance) };
 }
-
-// Принимает пустую строку при вводе
-void PassEmptyLine() {
-	string line;
-	getline(cin, line);
-}
-
-} // namespace detail
-} // namespace transport_catalogue::iofuncs
