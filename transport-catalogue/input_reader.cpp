@@ -21,7 +21,7 @@ pair<string, double> ParseStopDistanceQuery(string_view query);
 namespace transport_catalogue::iofuncs {
 
 void ReadInputRequests(TransportCatalogue& tc) {
-	deque<string> words; // Временное хранилище слов
+	deque<string> words; // Временное хранилище строк
 
 	int n; // Количество запросов
 	cin >> n;
@@ -128,11 +128,11 @@ TransportCatalogue::Route ParseRouteInputQuery(string_view route_query, Transpor
 		pos = route_query.find_first_of(split_symbol);
 
 		if (pos != route_query.npos) {
-			stops.push_back(tc.FindStop(route_query.substr(0, pos - 1)));
+			stops.push_back(const_cast<TransportCatalogue::Stop*>(tc.FindStop(route_query.substr(0, pos - 1))));
 			route_query.remove_prefix(pos + 2);
 		}
 		else {
-			stops.push_back(tc.FindStop(route_query));
+			stops.push_back(const_cast<TransportCatalogue::Stop*>(tc.FindStop(route_query)));
 			break;
 		}
 	}

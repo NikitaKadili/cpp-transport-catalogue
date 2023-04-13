@@ -41,10 +41,10 @@ public:
 	// Добавление маршрута в базу
 	void AddRoute(const Route& route);
 
-	// Поиск остановки по имени
-	Stop* FindStop(std::string_view name) const;
-	// Поиск маршрута по имени
-	Route* FindRoute(std::string_view number) const;
+	// Поиск остановки по имени, возвращает константный указатель на остановку
+	const Stop* FindStop(std::string_view name) const;
+	// Поиск маршрута по имени, возвращает константный указатель на машрут
+	const Route* FindRoute(std::string_view number) const;
 
 	// Получение основной информации о маршруте
 	std::optional<RouteInfo> GetRouteInfo(std::string_view number) const;
@@ -72,6 +72,11 @@ private:
 
 	// Словарь с основной информацией о маршрутах
 	std::unordered_map<std::string_view, RouteInfo> routes_to_routes_info_;
+
+	// Возвращает указатель на остановку
+	Stop* GetStopPtr(std::string_view name) noexcept;
+	// Возвращает указатель на машрут
+	Route* GetRoutePtr(std::string_view number) noexcept;
 
 	// Возвращает расстояние между координатами остановки from и to
 	double CountDistanceBetweenStops(Stop* from, Stop* to) const;
