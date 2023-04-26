@@ -1,32 +1,25 @@
 #pragma once
 
-#include <cmath>
+#include <tuple>
 
-namespace transport_catalogue::geo {
+namespace geo {
 
-// Средний радиус Земли в метрах
-const int EVERAGE_EARTH_RADIUS = 6371000;
-
+// Структура географических координат
 struct Coordinates {
-    double lat;
-    double lng;
+    double lat; // Широта
+    double lng; // Долгота
     bool operator==(const Coordinates& other) const {
         return lat == other.lat && lng == other.lng;
     }
     bool operator!=(const Coordinates& other) const {
         return !(*this == other);
     }
+    bool operator<(const Coordinates& other) const {
+        return std::tie(this->lat, this->lng) < std::tie(other.lat, other.lng);
+    }
 };
 
-inline double ComputeDistance(Coordinates from, Coordinates to) {
-    using namespace std;
-    if (from == to) {
-        return 0;
-    }
-    static const double dr = 3.1415926535 / 180.;
-    return acos(sin(from.lat * dr) * sin(to.lat * dr)
-        + cos(from.lat * dr) * cos(to.lat * dr) * cos(abs(from.lng - to.lng) * dr))
-        * EVERAGE_EARTH_RADIUS;
-}
+// Возвращает расстояние между двумя географическими координатами
+double ComputeDistance(Coordinates from, Coordinates to);
 
-} // namespace transport_catalogue::geo
+}  // namespace geo
