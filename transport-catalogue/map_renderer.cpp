@@ -10,8 +10,8 @@ svg::Point SphereProjector::operator()(geo::Coordinates coords) const {
     };
 }
 
-MapRenderer::MapRenderer(const transport_catalogue::TransportCatalogueDatabase& database)
-    : database_(database) {}
+MapRenderer::MapRenderer(const transport_catalogue::TransportCatalogue& catalogue)
+    : catalogue_(catalogue) {}
 
 // Задает настройки визуализации
 void MapRenderer::SetRenderSettings(const MapVisualisationSettings& settings) {
@@ -24,9 +24,9 @@ void MapRenderer::Rend(ostream& os) {
     set<geo::Coordinates> stops_corrdinates;
     
     // Итерируемся по остановкам, создаем множество уникальных координат
-    for (const auto& stop : database_.GetStops()) {
+    for (const auto& stop : catalogue_.GetStops()) {
         // Если через остановку не проходит ни одни маршрут - игнорируем её
-        if (!database_.GetStopsToRoutes().at(stop.name).empty()) {
+        if (!catalogue_.GetStopsToRoutes().at(stop.name).empty()) {
             stops_corrdinates.insert({ stop.latitude, stop.longitude });
         }
     }
@@ -92,7 +92,7 @@ std::vector<svg::Point> MapRenderer::ConvertToPixels(const set<geo::Coordinates>
 void MapRenderer::RenderRoutes(const SphereProjector& projector) {
     // Создаем сортированный словарь маршрутов
     map<string_view, transport_catalogue::Route*> sorted_routes;
-    for (const auto& [route_name, route_info] : database_.GetRoutesMap()) {
+    for (const auto& [route_name, route_info] : catalogue_.GetRoutesMap()) {
         sorted_routes.insert({ route_name, route_info });
     }
 
@@ -135,13 +135,13 @@ void MapRenderer::RenderRoutes(const SphereProjector& projector) {
 void MapRenderer::RenderStops(const SphereProjector& projector) {
     // Создаем сортированный словарь маршрутов
     std::map<std::string_view, transport_catalogue::Stop*> sorted_stops;
-    for (const auto& [stop_name, stop_info] : database_.GetStopsMap()) {
+    for (const auto& [stop_name, stop_info] : catalogue_.GetStopsMap()) {
         sorted_stops.insert({ stop_name, stop_info });
     }
 
     for (const auto& [stop_name, stop_info] : sorted_stops) {
         // Если через остановку не проходит ни один маршрут - пропускаем итерацию
-        if (database_.GetStopsToRoutes().find(stop_name)->second.empty()) {
+        if (catalogue_.GetStopsToRoutes().find(stop_name)->second.empty()) {
             continue;
         }
 

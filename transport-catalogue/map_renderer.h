@@ -15,27 +15,26 @@
 #include <unordered_set>
 #include <vector>
 
-inline const double EPSILON = 1e-6;
 class SphereProjector;
 
 // Структура настроек визуализации карты
 struct MapVisualisationSettings {
-    double width; // Ширина изображения в пикселях
-    double height; // Высота изображения в пикселях
+    double width = 600.0; // Ширина изображения в пикселях
+    double height = 400.0; // Высота изображения в пикселях
 
-    double padding; // Отступ краёв карты от границ
+    double padding = 0.0; // Отступ краёв карты от границ
 
-    double line_width; // Толщина линий маршрутов
-    double stop_radius; // Радиус окружностей остановок
+    double line_width = 10.0; // Толщина линий маршрутов
+    double stop_radius = 3.0; // Радиус окружностей остановок
 
-    int bus_label_font_size; // Размер текста маршрутов
-    std::pair<double, double> bus_label_offset; // Смещение надписи с маршрута
+    int bus_label_font_size = 10; // Размер текста маршрутов
+    std::pair<double, double> bus_label_offset = { 0.0, 0.0 }; // Смещение надписи с маршрута
 
-    int stop_label_font_size; // Размер текста остановок
-    std::pair<double, double> stop_label_offset; // Смещение названия остановки
+    int stop_label_font_size = 10; // Размер текста остановок
+    std::pair<double, double> stop_label_offset = { 0.0, 0.0 }; // Смещение названия остановки
 
-    svg::Color underlayer_color; // Цвет подложки
-    double underlayer_width; // Толщина подложки
+    svg::Color underlayer_color = svg::NoneColor; // Цвет подложки
+    double underlayer_width = 0.0; // Толщина подложки
 
     std::vector<svg::Color> color_palette; // Цветовая палитра
 };
@@ -43,7 +42,7 @@ struct MapVisualisationSettings {
 // Рендерер svg-карты
 class MapRenderer {
 public:
-    MapRenderer(const transport_catalogue::TransportCatalogueDatabase& database);
+    MapRenderer(const transport_catalogue::TransportCatalogue& database);
 
     // Задает настройки визуализации
     void SetRenderSettings(const MapVisualisationSettings& settings);
@@ -52,7 +51,7 @@ public:
     void Rend(std::ostream& os);
 private:
     MapVisualisationSettings settings_; // Настройки визуализации
-    const transport_catalogue::TransportCatalogueDatabase& database_; // Ссылка на базу данных
+    const transport_catalogue::TransportCatalogue& catalogue_; // Ссылка на базу данных
 
     size_t current_palit_pos_ = 0; // Счетчик позиции в массиве палитры
 
@@ -99,6 +98,8 @@ public:
     svg::Point operator()(geo::Coordinates coords) const;
 
 private:
+    const double EPSILON = 1e-6;
+
     double padding_;
     double min_lon_ = 0;
     double max_lat_ = 0;

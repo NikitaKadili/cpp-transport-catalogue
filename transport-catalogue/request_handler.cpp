@@ -1,23 +1,17 @@
 #include "request_handler.h"
 
-#include <algorithm>
-#include <deque>
-#include <map>
-
-using namespace std;
-
-RequestHandler::RequestHandler(transport_catalogue::TransportCatalogue& catalogue,
-	MapRenderer& renderer, ostream& output_stream)
-	: catalogue_(catalogue)
-	, renderer_(renderer)
-	, output_stream_(output_stream) {}
-
-// Посылает команду на рендер карты в поток вывода output_stream_
-void RequestHandler::RendCatalogueMap() {
-	renderer_.Rend(output_stream_);
+// Добавляет остановку в транспортный справочник
+void AddStopToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
+	transport_catalogue::Stop&& stop) {
+	catalogue.AddStop(std::move(stop));
+}
+// Добавляет маршрут в транспортный справочник
+void AddRouteToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
+	transport_catalogue::Route&& route) {
+	catalogue.AddRoute(std::move(route));
 }
 
-// Выводит json::Document в поток output_stream_
-void RequestHandler::PrintJsonDocument(const json::Document& doc) {
-	json::Print(doc, output_stream_);
+// Выводит json-документ с результатами запросов в out_stream
+void PrintJsonResultDocument(json_reader::JsonIOHandler& json_io, std::ostream& os) {
+	json::Print(json_io.ProcessRequests(), os);
 }

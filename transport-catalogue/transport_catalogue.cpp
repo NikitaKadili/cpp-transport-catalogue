@@ -7,9 +7,6 @@ using namespace std;
 
 namespace transport_catalogue {
 
-TransportCatalogue::TransportCatalogue(TransportCatalogueDatabase& db)
-	: database_(db) {}
-
 // Добавление остановки в базу
 void TransportCatalogue::AddStop(const Stop& stop) {
 	// Находим указатель на остановку, если она была добавлена ранее
@@ -22,10 +19,10 @@ void TransportCatalogue::AddStop(const Stop& stop) {
 		return;
 	}
 
-	database_.stops_.push_back(stop);
-	ptr = &database_.stops_.back();
-	database_.stops_to_structs_[ptr->name] = ptr;
-	database_.stops_to_routes_[ptr->name] = {};
+	stops_.push_back(stop);
+	ptr = &stops_.back();
+	stops_to_structs_[ptr->name] = ptr;
+	stops_to_routes_[ptr->name] = {};
 }
 
 // Добавление фактического расстояния между остановками
@@ -46,11 +43,11 @@ void TransportCatalogue::AddActualDistance(string_view from, string_view to, dou
 	}
 
 	// Вносим расстояние для пары [from, to]
-	database_.stops_pairs_to_distances_[{ from_ptr, to_ptr }] = distance;
+	stops_pairs_to_distances_[{ from_ptr, to_ptr }] = distance;
 
 	// Если расстояние для пары [to, from] не было добавлено ранее - добавляем и его
-	if (database_.stops_pairs_to_distances_.find({ to_ptr, from_ptr }) == database_.stops_pairs_to_distances_.end()) {
-		database_.stops_pairs_to_distances_[{ to_ptr, from_ptr }] = distance;
+	if (stops_pairs_to_distances_.find({ to_ptr, from_ptr }) == stops_pairs_to_distances_.end()) {
+		stops_pairs_to_distances_[{ to_ptr, from_ptr }] = distance;
 	}
 }
 
@@ -69,27 +66,27 @@ void TransportCatalogue::AddRoute(const Route& route) {
 
 		auto from_ptr = GetStopPtr(route.stops.at(i - 1)->name);
 		auto to_ptr = GetStopPtr(route.stops.at(i)->name);
-		fact_distance += database_.stops_pairs_to_distances_[{from_ptr, to_ptr }];
+		fact_distance += stops_pairs_to_distances_[{from_ptr, to_ptr }];
 	}
 
-	database_.routes_.push_back(route);
-	Route* ptr = &database_.routes_.back();
-	database_.routes_to_structs_[ptr->number] = ptr;
+	routes_.push_back(route);
+	Route* ptr = &routes_.back();
+	routes_to_structs_[ptr->number] = ptr;
 
 	// Добавляем указатель на маршрут в словарь stops_to_routes_
 	for (Stop* ptr_to_stop : unique_stops) {
-		database_.stops_to_routes_.at(ptr_to_stop->name).insert(ptr->number);
+		stops_to_routes_.at(ptr_to_stop->name).insert(ptr->number);
 	}
 
 	// Вносим общую информацию по маршруту в routes_to_routes_info_
-	database_.routes_to_routes_info_[ptr->number]
+	routes_to_routes_info_[ptr->number]
 		= { route.stops.size(), unique_stops.size(), geo_distance, fact_distance };
 }
 
 // Поиск остановки по имени, возвращает константный указатель на остановку
 const Stop* TransportCatalogue::FindStop(string_view name) const {
-	auto it = database_.stops_to_structs_.find(name);
-	if (it != database_.stops_to_structs_.end()) {
+	auto it = stops_to_structs_.find(name);
+	if (it != stops_to_structs_.end()) {
 		return it->second;
 	}
 
@@ -98,8 +95,8 @@ const Stop* TransportCatalogue::FindStop(string_view name) const {
 
 // Поиск маршрута по имени, возвращает константный указатель на машрут
 const Route* TransportCatalogue::FindRoute(string_view number) const {
-	auto it = database_.routes_to_structs_.find(number);
-	if (it != database_.routes_to_structs_.end()) {
+	auto it = routes_to_structs_.find(number);
+	if (it != routes_to_structs_.end()) {
 		return it->second;
 	}
 
@@ -108,8 +105,8 @@ const Route* TransportCatalogue::FindRoute(string_view number) const {
 
 // Получение основной информации о маршруте
 optional<RouteInfo> TransportCatalogue::GetRouteInfo(string_view number) const {
-	auto it = database_.routes_to_routes_info_.find(number);
-	if (it != database_.routes_to_routes_info_.end()) {
+	auto it = routes_to_routes_info_.find(number);
+	if (it != routes_to_routes_info_.end()) {
 		return it->second;
 	}
 
@@ -118,17 +115,32 @@ optional<RouteInfo> TransportCatalogue::GetRouteInfo(string_view number) const {
 
 // Получение информации о маршрутах, проходящих через остановку
 optional<set<string_view>> TransportCatalogue::GetRoutesOnStopInfo(string_view name) const {
-	auto it = database_.stops_to_routes_.find(name);
-	if (it != database_.stops_to_routes_.end()) {
+	auto it = stops_to_routes_.find(name);
+	if (it != stops_to_routes_.end()) {
 		return it->second;
 	}
 
 	return nullopt;
 }
 
-// Возвращает ссылку на базу данных, подключенную к серверу
-const TransportCatalogueDatabase& TransportCatalogue::GetData() const {
-	return database_;
+// Возвращает ссылку на словарь всех маршрутов
+const unordered_map<string_view, Route*>& TransportCatalogue::GetRoutesMap() const {
+	return routes_to_structs_;
+}
+// Возвращает ссылку словарь всех остановок
+const std::unordered_map<std::string_view, Stop*>& TransportCatalogue::GetStopsMap() const {
+	return stops_to_structs_;
+}
+// Возвращает ссылку на дэк всех остановок
+const deque<Stop>& TransportCatalogue::GetStops() const {
+	return stops_;
+}
+// Возвращает ссылку на словарь, где:
+// ключ - наименование остановки;
+// значение - множество наименование маршрутов, проходящих через остановку
+const unordered_map<string_view, set<std::string_view>>&
+TransportCatalogue::GetStopsToRoutes() const {
+	return stops_to_routes_;
 }
 
 // Возвращает расстояние между координатами остановки from и to
@@ -139,10 +151,16 @@ double TransportCatalogue::CountDistanceBetweenStops(Stop* from, Stop* to) const
 	);
 }
 
+// Хэш-функция для std::pair<Stop*, Stop*>
+size_t TransportCatalogue::StopsPairHasher::operator()(const pair<Stop*, Stop*>& stops) const {
+	return reinterpret_cast<size_t>(stops.first) * 13
+		+ reinterpret_cast<size_t>(stops.second) * 13 * 13;
+}
+
 // Возвращает указатель на остановку
 Stop* TransportCatalogue::GetStopPtr(string_view name) noexcept {
-	auto it = database_.stops_to_structs_.find(name);
-	if (it != database_.stops_to_structs_.end()) {
+	auto it = stops_to_structs_.find(name);
+	if (it != stops_to_structs_.end()) {
 		return it->second;
 	}
 
@@ -151,8 +169,8 @@ Stop* TransportCatalogue::GetStopPtr(string_view name) noexcept {
 
 // Возвращает указатель на машрут
 Route* TransportCatalogue::GetRoutePtr(string_view number) noexcept {
-	auto it = database_.routes_to_structs_.find(number);
-	if (it != database_.routes_to_structs_.end()) {
+	auto it = routes_to_structs_.find(number);
+	if (it != routes_to_structs_.end()) {
 		return it->second;
 	}
 

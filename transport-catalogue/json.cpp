@@ -270,17 +270,17 @@ const string& Node::AsString() const {
     return get<string>(*this);
 }
 
-bool Node::IsNull() const { return this->index() == 0; }
-bool Node::IsArray() const { return this->index() == 1; }
-bool Node::IsMap() const { return this->index() == 2; }
-bool Node::IsBool() const { return this->index() == 3; }
-bool Node::IsInt() const { return this->index() == 4; }
+bool Node::IsNull() const { return holds_alternative<nullptr_t>(*this); }
+bool Node::IsArray() const { return holds_alternative<Array>(*this); }
+bool Node::IsMap() const { return holds_alternative<Dict>(*this); }
+bool Node::IsBool() const { return holds_alternative<bool>(*this); }
+bool Node::IsInt() const { return holds_alternative<int>(*this); }
 bool Node::IsDouble() const {
-    return this->index() == 4
-        || this->index() == 5;
+    return holds_alternative<int>(*this)
+        || holds_alternative<double>(*this);
 }
-bool Node::IsPureDouble() const { return this->index() == 5; }
-bool Node::IsString() const { return this->index() == 6; }
+bool Node::IsPureDouble() const { return holds_alternative<double>(*this); }
+bool Node::IsString() const { return holds_alternative<string>(*this); }
 
 const NodeValue& Node::GetValue() const { return *this; }
 
