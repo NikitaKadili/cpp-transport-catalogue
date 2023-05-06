@@ -15,86 +15,88 @@
 #include <unordered_set>
 #include <vector>
 
+namespace renderer {
+
 class SphereProjector;
 
-// Структура настроек визуализации карты
+// РЎС‚СЂСѓРєС‚СѓСЂР° РЅР°СЃС‚СЂРѕРµРє РІРёР·СѓР°Р»РёР·Р°С†РёРё РєР°СЂС‚С‹
 struct MapVisualisationSettings {
-    double width = 600.0; // Ширина изображения в пикселях
-    double height = 400.0; // Высота изображения в пикселях
+    double width = 600.0; // РЁРёСЂРёРЅР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РїРёРєСЃРµР»СЏС…
+    double height = 400.0; // Р’С‹СЃРѕС‚Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РїРёРєСЃРµР»СЏС…
 
-    double padding = 0.0; // Отступ краёв карты от границ
+    double padding = 0.0; // РћС‚СЃС‚СѓРї РєСЂР°С‘РІ РєР°СЂС‚С‹ РѕС‚ РіСЂР°РЅРёС†
 
-    double line_width = 10.0; // Толщина линий маршрутов
-    double stop_radius = 3.0; // Радиус окружностей остановок
+    double line_width = 10.0; // РўРѕР»С‰РёРЅР° Р»РёРЅРёР№ РјР°СЂС€СЂСѓС‚РѕРІ
+    double stop_radius = 3.0; // Р Р°РґРёСѓСЃ РѕРєСЂСѓР¶РЅРѕСЃС‚РµР№ РѕСЃС‚Р°РЅРѕРІРѕРє
 
-    int bus_label_font_size = 10; // Размер текста маршрутов
-    std::pair<double, double> bus_label_offset = { 0.0, 0.0 }; // Смещение надписи с маршрута
+    int bus_label_font_size = 10; // Р Р°Р·РјРµСЂ С‚РµРєСЃС‚Р° РјР°СЂС€СЂСѓС‚РѕРІ
+    std::pair<double, double> bus_label_offset = { 0.0, 0.0 }; // РЎРјРµС‰РµРЅРёРµ РЅР°РґРїРёСЃРё СЃ РјР°СЂС€СЂСѓС‚Р°
 
-    int stop_label_font_size = 10; // Размер текста остановок
-    std::pair<double, double> stop_label_offset = { 0.0, 0.0 }; // Смещение названия остановки
+    int stop_label_font_size = 10; // Р Р°Р·РјРµСЂ С‚РµРєСЃС‚Р° РѕСЃС‚Р°РЅРѕРІРѕРє
+    std::pair<double, double> stop_label_offset = { 0.0, 0.0 }; // РЎРјРµС‰РµРЅРёРµ РЅР°Р·РІР°РЅРёСЏ РѕСЃС‚Р°РЅРѕРІРєРё
 
-    svg::Color underlayer_color = svg::NoneColor; // Цвет подложки
-    double underlayer_width = 0.0; // Толщина подложки
+    svg::Color underlayer_color = svg::NoneColor; // Р¦РІРµС‚ РїРѕРґР»РѕР¶РєРё
+    double underlayer_width = 0.0; // РўРѕР»С‰РёРЅР° РїРѕРґР»РѕР¶РєРё
 
-    std::vector<svg::Color> color_palette; // Цветовая палитра
+    std::vector<svg::Color> color_palette; // Р¦РІРµС‚РѕРІР°СЏ РїР°Р»РёС‚СЂР°
 };
 
-// Рендерер svg-карты
+// Р РµРЅРґРµСЂРµСЂ svg-РєР°СЂС‚С‹
 class MapRenderer {
 public:
     MapRenderer(const transport_catalogue::TransportCatalogue& database);
 
-    // Задает настройки визуализации
+    // Р—Р°РґР°РµС‚ РЅР°СЃС‚СЂРѕР№РєРё РІРёР·СѓР°Р»РёР·Р°С†РёРё
     void SetRenderSettings(const MapVisualisationSettings& settings);
 
-    // Рендер карты транспортного справочника
+    // Р РµРЅРґРµСЂ РєР°СЂС‚С‹ С‚СЂР°РЅСЃРїРѕСЂС‚РЅРѕРіРѕ СЃРїСЂР°РІРѕС‡РЅРёРєР°
     void Rend(std::ostream& os);
 private:
-    MapVisualisationSettings settings_; // Настройки визуализации
-    const transport_catalogue::TransportCatalogue& catalogue_; // Ссылка на базу данных
+    MapVisualisationSettings settings_; // РќР°СЃС‚СЂРѕР№РєРё РІРёР·СѓР°Р»РёР·Р°С†РёРё
+    const transport_catalogue::TransportCatalogue& catalogue_; // РЎСЃС‹Р»РєР° РЅР° Р±Р°Р·Сѓ РґР°РЅРЅС‹С…
 
-    size_t current_palit_pos_ = 0; // Счетчик позиции в массиве палитры
+    size_t current_palit_pos_ = 0; // РЎС‡РµС‚С‡РёРє РїРѕР·РёС†РёРё РІ РјР°СЃСЃРёРІРµ РїР°Р»РёС‚СЂС‹
 
-    std::vector<svg::Polyline> routes_polylines_; // Вектор полилиний маршрутов
-    std::vector<svg::Text> routes_names_; // Вектор наименований маршрутов
-    std::vector<svg::Circle> stops_circles_; // Вектор обозначений остановок
-    std::vector<svg::Text> stops_names_; // Вектор наименование остановок
+    std::vector<svg::Polyline> routes_polylines_; // Р’РµРєС‚РѕСЂ РїРѕР»РёР»РёРЅРёР№ РјР°СЂС€СЂСѓС‚РѕРІ
+    std::vector<svg::Text> routes_names_; // Р’РµРєС‚РѕСЂ РЅР°РёРјРµРЅРѕРІР°РЅРёР№ РјР°СЂС€СЂСѓС‚РѕРІ
+    std::vector<svg::Circle> stops_circles_; // Р’РµРєС‚РѕСЂ РѕР±РѕР·РЅР°С‡РµРЅРёР№ РѕСЃС‚Р°РЅРѕРІРѕРє
+    std::vector<svg::Text> stops_names_; // Р’РµРєС‚РѕСЂ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ РѕСЃС‚Р°РЅРѕРІРѕРє
 
-    // Выводит итоговый svg-документа в указанный поток
+    // Р’С‹РІРѕРґРёС‚ РёС‚РѕРіРѕРІС‹Р№ svg-РґРѕРєСѓРјРµРЅС‚Р° РІ СѓРєР°Р·Р°РЅРЅС‹Р№ РїРѕС‚РѕРє
     void Print(std::ostream& os);
 
-    // Конвертирует вектор остановок в вектор пикселей
+    // РљРѕРЅРІРµСЂС‚РёСЂСѓРµС‚ РІРµРєС‚РѕСЂ РѕСЃС‚Р°РЅРѕРІРѕРє РІ РІРµРєС‚РѕСЂ РїРёРєСЃРµР»РµР№
     std::vector<svg::Point> ConvertToPixels(const std::vector<transport_catalogue::Stop*>& stops,
         const SphereProjector& projector) const;
-    // Конвертирует множество географических координат в вектор пикселей
+    // РљРѕРЅРІРµСЂС‚РёСЂСѓРµС‚ РјРЅРѕР¶РµСЃС‚РІРѕ РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚ РІ РІРµРєС‚РѕСЂ РїРёРєСЃРµР»РµР№
     std::vector<svg::Point> ConvertToPixels(const std::set<geo::Coordinates>& stops,
         const SphereProjector& projector) const;
 
-    // Рендер маршрутов
+    // Р РµРЅРґРµСЂ РјР°СЂС€СЂСѓС‚РѕРІ
     void RenderRoutes(const SphereProjector& projector);
-    // Рендер остановок
+    // Р РµРЅРґРµСЂ РѕСЃС‚Р°РЅРѕРІРѕРє
     void RenderStops(const SphereProjector& projector);
 
-    // Добавляет наименования автобусных остановок 
+    // Р”РѕР±Р°РІР»СЏРµС‚ РЅР°РёРјРµРЅРѕРІР°РЅРёСЏ Р°РІС‚РѕР±СѓСЃРЅС‹С… РѕСЃС‚Р°РЅРѕРІРѕРє 
     void AddStopName(const svg::Point& position, std::string_view name);
-    // Добавляет полилинии маршрутов в routes_polylines_
+    // Р”РѕР±Р°РІР»СЏРµС‚ РїРѕР»РёР»РёРЅРёРё РјР°СЂС€СЂСѓС‚РѕРІ РІ routes_polylines_
     void AddRoutesPolylines(const std::vector<svg::Point>& coordinates);
-    // Добавляет наименование маршрута с подложкой в routes_names_
+    // Р”РѕР±Р°РІР»СЏРµС‚ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р° СЃ РїРѕРґР»РѕР¶РєРѕР№ РІ routes_names_
     void AddRouteName(std::string_view route_name, svg::Point pos);
 
-    // Возвращает положение второй конечной остановки для некольцевых маршрутов
+    // Р’РѕР·РІСЂР°С‰Р°РµС‚ РїРѕР»РѕР¶РµРЅРёРµ РІС‚РѕСЂРѕР№ РєРѕРЅРµС‡РЅРѕР№ РѕСЃС‚Р°РЅРѕРІРєРё РґР»СЏ РЅРµРєРѕР»СЊС†РµРІС‹С… РјР°СЂС€СЂСѓС‚РѕРІ
     std::optional<svg::Point> FindSecondEndingStation(const std::vector<svg::Point>& route) const;
 };
 
-// Класс проецирует координаты земной поверхности в координаты на карте
+// РљР»Р°СЃСЃ РїСЂРѕРµС†РёСЂСѓРµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ Р·РµРјРЅРѕР№ РїРѕРІРµСЂС…РЅРѕСЃС‚Рё РІ РєРѕРѕСЂРґРёРЅР°С‚С‹ РЅР° РєР°СЂС‚Рµ
 class SphereProjector {
 public:
-    // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
+    // points_begin Рё points_end Р·Р°РґР°СЋС‚ РЅР°С‡Р°Р»Рѕ Рё РєРѕРЅРµС† РёРЅС‚РµСЂРІР°Р»Р° СЌР»РµРјРµРЅС‚РѕРІ geo::Coordinates
     template <typename PointInputIt>
     SphereProjector(PointInputIt points_begin, PointInputIt points_end,
         double max_width, double max_height, double padding);
 
-    // Проецирует широту и долготу в координаты внутри SVG-изображения
+    // РџСЂРѕРµС†РёСЂСѓРµС‚ С€РёСЂРѕС‚Сѓ Рё РґРѕР»РіРѕС‚Сѓ РІ РєРѕРѕСЂРґРёРЅР°С‚С‹ РІРЅСѓС‚СЂРё SVG-РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
     svg::Point operator()(geo::Coordinates coords) const;
 
 private:
@@ -112,53 +114,55 @@ private:
 
 /***** TEMPLATE METHODS REALISATION *****/
 
-// points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
+// points_begin Рё points_end Р·Р°РґР°СЋС‚ РЅР°С‡Р°Р»Рѕ Рё РєРѕРЅРµС† РёРЅС‚РµСЂРІР°Р»Р° СЌР»РµРјРµРЅС‚РѕРІ geo::Coordinates
 template <typename PointInputIt>
 SphereProjector::SphereProjector(PointInputIt points_begin, PointInputIt points_end,
     double max_width, double max_height, double padding) 
     : padding_(padding) {
-    // Если точки поверхности сферы не заданы, вычислять нечего
+    // Р•СЃР»Рё С‚РѕС‡РєРё РїРѕРІРµСЂС…РЅРѕСЃС‚Рё СЃС„РµСЂС‹ РЅРµ Р·Р°РґР°РЅС‹, РІС‹С‡РёСЃР»СЏС‚СЊ РЅРµС‡РµРіРѕ
     if (points_begin == points_end) {
         return;
     }
 
-    // Находим точки с минимальной и максимальной долготой
+    // РќР°С…РѕРґРёРј С‚РѕС‡РєРё СЃ РјРёРЅРёРјР°Р»СЊРЅРѕР№ Рё РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ РґРѕР»РіРѕС‚РѕР№
     const auto [left_it, right_it] = std::minmax_element(
         points_begin, points_end,
         [](auto lhs, auto rhs) { return lhs.lng < rhs.lng; });
     min_lon_ = left_it->lng;
     const double max_lon = right_it->lng;
 
-    // Находим точки с минимальной и максимальной широтой
+    // РќР°С…РѕРґРёРј С‚РѕС‡РєРё СЃ РјРёРЅРёРјР°Р»СЊРЅРѕР№ Рё РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ С€РёСЂРѕС‚РѕР№
     const auto [bottom_it, top_it] = std::minmax_element(
         points_begin, points_end,
         [](auto lhs, auto rhs) { return lhs.lat < rhs.lat; });
     const double min_lat = bottom_it->lat;
     max_lat_ = top_it->lat;
 
-    // Вычисляем коэффициент масштабирования вдоль координаты x
+    // Р’С‹С‡РёСЃР»СЏРµРј РєРѕСЌС„С„РёС†РёРµРЅС‚ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ РІРґРѕР»СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ x
     std::optional<double> width_zoom;
     if (!IsCoordZero(max_lon - min_lon_)) {
         width_zoom = (max_width - 2 * padding) / (max_lon - min_lon_);
     }
 
-    // Вычисляем коэффициент масштабирования вдоль координаты y
+    // Р’С‹С‡РёСЃР»СЏРµРј РєРѕСЌС„С„РёС†РёРµРЅС‚ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ РІРґРѕР»СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ y
     std::optional<double> height_zoom;
     if (!IsCoordZero(max_lat_ - min_lat)) {
         height_zoom = (max_height - 2 * padding) / (max_lat_ - min_lat);
     }
 
     if (width_zoom && height_zoom) {
-        // Коэффициенты масштабирования по ширине и высоте ненулевые,
-        // берём минимальный из них
+        // РљРѕСЌС„С„РёС†РёРµРЅС‚С‹ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ РїРѕ С€РёСЂРёРЅРµ Рё РІС‹СЃРѕС‚Рµ РЅРµРЅСѓР»РµРІС‹Рµ,
+        // Р±РµСЂС‘Рј РјРёРЅРёРјР°Р»СЊРЅС‹Р№ РёР· РЅРёС…
         zoom_coeff_ = std::min(*width_zoom, *height_zoom);
     }
     else if (width_zoom) {
-        // Коэффициент масштабирования по ширине ненулевой, используем его
+        // РљРѕСЌС„С„РёС†РёРµРЅС‚ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ РїРѕ С€РёСЂРёРЅРµ РЅРµРЅСѓР»РµРІРѕР№, РёСЃРїРѕР»СЊР·СѓРµРј РµРіРѕ
         zoom_coeff_ = *width_zoom;
     }
     else if (height_zoom) {
-        // Коэффициент масштабирования по высоте ненулевой, используем его
+        // РљРѕСЌС„С„РёС†РёРµРЅС‚ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ РїРѕ РІС‹СЃРѕС‚Рµ РЅРµРЅСѓР»РµРІРѕР№, РёСЃРїРѕР»СЊР·СѓРµРј РµРіРѕ
         zoom_coeff_ = *height_zoom;
     }
 }
+
+} // namespace renderer

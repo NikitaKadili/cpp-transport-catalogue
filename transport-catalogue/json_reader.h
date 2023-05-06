@@ -12,41 +12,41 @@ namespace json_reader {
 class JsonIOHandler final {
 public:
 	JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
-		MapRenderer& renderer, std::istream& is);
+		renderer::MapRenderer& renderer, std::istream& is);
 
-	// Запуск обработчика запросов, переданных в формате json в поток input_stream_
-	// Возвращает json-документ результатов запроса
+	// Р—Р°РїСѓСЃРє РѕР±СЂР°Р±РѕС‚С‡РёРєР° Р·Р°РїСЂРѕСЃРѕРІ, РїРµСЂРµРґР°РЅРЅС‹С… РІ С„РѕСЂРјР°С‚Рµ json РІ РїРѕС‚РѕРє input_stream_
+	// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-РґРѕРєСѓРјРµРЅС‚ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ Р·Р°РїСЂРѕСЃР°
 	[[nodiscard]] json::Document ProcessRequests();
 
 private:
-	// Ссылка на транспортный справочник
+	// РЎСЃС‹Р»РєР° РЅР° С‚СЂР°РЅСЃРїРѕСЂС‚РЅС‹Р№ СЃРїСЂР°РІРѕС‡РЅРёРє
 	transport_catalogue::TransportCatalogue& catalogue_;
-	// Ссылка на MapRenderer
-	MapRenderer& renderer_;
+	// РЎСЃС‹Р»РєР° РЅР° MapRenderer
+	renderer::MapRenderer& renderer_;
 
-	std::istream& input_stream_; // Поток ввода запросов
+	std::istream& input_stream_; // РџРѕС‚РѕРє РІРІРѕРґР° Р·Р°РїСЂРѕСЃРѕРІ
 
-	// Обрабатывает запросы на внесение данных в справочник
+	// РћР±СЂР°Р±Р°С‚С‹РІР°РµС‚ Р·Р°РїСЂРѕСЃС‹ РЅР° РІРЅРµСЃРµРЅРёРµ РґР°РЅРЅС‹С… РІ СЃРїСЂР°РІРѕС‡РЅРёРє
 	void ProcessInsertationRequests(const json::Node& requests);
 
-	// Вносит в справочник информацию о маршруте из запроса
+	// Р’РЅРѕСЃРёС‚ РІ СЃРїСЂР°РІРѕС‡РЅРёРє РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РјР°СЂС€СЂСѓС‚Рµ РёР· Р·Р°РїСЂРѕСЃР°
 	void AddRoute(const json::Dict& request_map);
-	// Вносит в справочник информацию об остановке из запроса
+	// Р’РЅРѕСЃРёС‚ РІ СЃРїСЂР°РІРѕС‡РЅРёРє РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РѕСЃС‚Р°РЅРѕРІРєРµ РёР· Р·Р°РїСЂРѕСЃР°
 	void AddStop(const json::Dict& request_map);
 
-	// Обрыбытвает поисковые запросы, возвращает json-документ с результатами
+	// РћР±СЂС‹Р±С‹С‚РІР°РµС‚ РїРѕРёСЃРєРѕРІС‹Рµ Р·Р°РїСЂРѕСЃС‹, РІРѕР·РІСЂР°С‰Р°РµС‚ json-РґРѕРєСѓРјРµРЅС‚ СЃ СЂРµР·СѓР»СЊС‚Р°С‚Р°РјРё
 	[[nodiscard]] json::Document ProcessStatRequests(const json::Node& requests) const;
 
-	// Возвращает json-узел с данными по остановке
+	// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-СѓР·РµР» СЃ РґР°РЅРЅС‹РјРё РїРѕ РѕСЃС‚Р°РЅРѕРІРєРµ
 	[[nodiscard]] json::Node FindStop(const json::Dict& request_map) const;
-	// Возвращает json-узел с данными по маршруту
+	// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-СѓР·РµР» СЃ РґР°РЅРЅС‹РјРё РїРѕ РјР°СЂС€СЂСѓС‚Сѓ
 	[[nodiscard]] json::Node FindRoute(const json::Dict& request_map) const;
-	// Возвращает json-узел с svg-документом карты справочника
+	// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-СѓР·РµР» СЃ svg-РґРѕРєСѓРјРµРЅС‚РѕРј РєР°СЂС‚С‹ СЃРїСЂР°РІРѕС‡РЅРёРєР°
 	[[nodiscard]] json::Node RenderMap(const json::Dict& request_map) const;
 
-	// Обрабатывает узел настроек визуализации карты
+	// РћР±СЂР°Р±Р°С‚С‹РІР°РµС‚ СѓР·РµР» РЅР°СЃС‚СЂРѕРµРє РІРёР·СѓР°Р»РёР·Р°С†РёРё РєР°СЂС‚С‹ 
 	void ProcessVisualisationSettings(const json::Node& settings);
-	// Возвращает цвет svg::Color, находящийся в переданном узле
+	// Р’РѕР·РІСЂР°С‰Р°РµС‚ С†РІРµС‚ svg::Color, РЅР°С…РѕРґСЏС‰РёР№СЃСЏ РІ РїРµСЂРµРґР°РЅРЅРѕРј СѓР·Р»Рµ
 	[[nodiscard]] svg::Color GetColor(const json::Node& color_node) const;
 };
 

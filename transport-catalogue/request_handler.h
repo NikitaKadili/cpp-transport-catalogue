@@ -5,12 +5,12 @@
 
 #include <iostream>
 
-// Добавляет остановку в транспортный справочник
+// Р”РѕР±Р°РІР»СЏРµС‚ РѕСЃС‚Р°РЅРѕРІРєСѓ РІ С‚СЂР°РЅСЃРїРѕСЂС‚РЅС‹Р№ СЃРїСЂР°РІРѕС‡РЅРёРє
 void AddStopToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
 	transport_catalogue::Stop&& stop);
-// Добавляет маршрут в транспортный справочник
+// Р”РѕР±Р°РІР»СЏРµС‚ РјР°СЂС€СЂСѓС‚ РІ С‚СЂР°РЅСЃРїРѕСЂС‚РЅС‹Р№ СЃРїСЂР°РІРѕС‡РЅРёРє
 void AddRouteToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
 	transport_catalogue::Route&& route);
 
-// Выводит json-документ с результатами запросов в out_stream
+// Р’С‹РІРѕРґРёС‚ json-РґРѕРєСѓРјРµРЅС‚ СЃ СЂРµР·СѓР»СЊС‚Р°С‚Р°РјРё Р·Р°РїСЂРѕСЃРѕРІ РІ out_stream
 void PrintJsonResultDocument(json_reader::JsonIOHandler& json_io, std::ostream& os);

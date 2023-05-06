@@ -1,3 +1,4 @@
+#include "json_builder.h"
 #include "json_reader.h"
 
 #include <optional>
@@ -11,29 +12,29 @@ namespace json_reader {
 using namespace std;
 
 JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
-	MapRenderer& renderer, std::istream& is)
+	renderer::MapRenderer& renderer, std::istream& is)
 	: catalogue_(catalogue)
 	, renderer_(renderer)
 	, input_stream_(is) {}
 
-// Запуск обработчика запросов, переданных в формате json в поток input_stream_
-// Возвращает json-документ результатов запроса
+// Р—Р°РїСѓСЃРє РѕР±СЂР°Р±РѕС‚С‡РёРєР° Р·Р°РїСЂРѕСЃРѕРІ, РїРµСЂРµРґР°РЅРЅС‹С… РІ С„РѕСЂРјР°С‚Рµ json РІ РїРѕС‚РѕРє input_stream_ 
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-РґРѕРєСѓРјРµРЅС‚ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ Р·Р°РїСЂРѕСЃР°
 [[nodiscard]] json::Document JsonIOHandler::ProcessRequests() {
-	// Получаем распарсенный json::Document запросов
+	// Р РµР·СѓР»СЊС‚РёСЂСѓСЋС‰РёР№ json-РґРѕРєСѓРјРµРЅС‚
 	const json::Document requests = json::Load(input_stream_);
-	json::Document output; // Результирующий json-документ
+	json::Document output; // Р РµР·СѓР»СЊС‚РёСЂСѓСЋС‰РёР№ json-РґРѕРєСѓРјРµРЅС‚
 
-	// Если переданный документ не содержит словаря запросов, либо переданный
-	// словарь пуст - возвращаем пустой документ
-	if (!requests.GetRoot().IsMap()) {
+	// Р•СЃР»Рё РїРµСЂРµРґР°РЅРЅС‹Р№ РґРѕРєСѓРјРµРЅС‚ РЅРµ СЃРѕРґРµСЂР¶РёС‚ СЃР»РѕРІР°СЂСЏ Р·Р°РїСЂРѕСЃРѕРІ, Р»РёР±Рѕ РїРµСЂРµРґР°РЅРЅС‹Р№
+	// СЃР»РѕРІР°СЂСЊ РїСѓСЃС‚ - РІРѕР·РІСЂР°С‰Р°РµРј РїСѓСЃС‚РѕР№ РґРѕРєСѓРјРµРЅС‚
+	if (!requests.GetRoot().IsDict()) {
 		return output;
 	}
-	else if (requests.GetRoot().AsMap().empty()) {
+	else if (requests.GetRoot().AsDict().empty()) {
 		return output;
 	}
 
-	// Итерируемся по запросам, отправляем в соответствующие методы их содержание
-	for (const auto& [requests_type, requests] : requests.GetRoot().AsMap()) {
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ Р·Р°РїСЂРѕСЃР°Рј, РѕС‚РїСЂР°РІР»СЏРµРј РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёРµ РјРµС‚РѕРґС‹ РёС… СЃРѕРґРµСЂР¶Р°РЅРёРµ
+	for (const auto& [requests_type, requests] : requests.GetRoot().AsDict()) {
 		if (requests_type == "base_requests"s) {
 			ProcessInsertationRequests(requests);
 		}
@@ -51,10 +52,10 @@ JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 	return output;
 }
 
-// Обрабатывает запросы на внесение данных в справочник
+// РћР±СЂР°Р±Р°С‚С‹РІР°РµС‚ Р·Р°РїСЂРѕСЃС‹ РЅР° РІРЅРµСЃРµРЅРёРµ РґР°РЅРЅС‹С… РІ СЃРїСЂР°РІРѕС‡РЅРёРє
 void JsonIOHandler::ProcessInsertationRequests(const json::Node& requests) {
-	// Если запросы находятся не в массиве - выбрасываем исключение invalid_argument,
-	// а если массив запросов пуст - выходим из метода
+	// Р•СЃР»Рё Р·Р°РїСЂРѕСЃС‹ РЅР°С…РѕРґСЏС‚СЃСЏ РЅРµ РІ РјР°СЃСЃРёРІРµ - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument,
+	// Р° РµСЃР»Рё РјР°СЃСЃРёРІ Р·Р°РїСЂРѕСЃРѕРІ РїСѓСЃС‚ - РІС‹С…РѕРґРёРј РёР· РјРµС‚РѕРґР°
 	if (!requests.IsArray()) {
 		throw invalid_argument("Insertation requests must be in array"s);
 	}
@@ -62,22 +63,22 @@ void JsonIOHandler::ProcessInsertationRequests(const json::Node& requests) {
 		return;
 	}
 
-	vector<const json::Dict*> routes; // Контейнер запросов на добавление маршрутов
+	vector<const json::Dict*> routes; // РљРѕРЅС‚РµР№РЅРµСЂ Р·Р°РїСЂРѕСЃРѕРІ РЅР° РґРѕР±Р°РІР»РµРЅРёРµ РјР°СЂС€СЂСѓС‚РѕРІ
 
-	// Итерируемся по словарям самих запросов
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ СЃР»РѕРІР°СЂСЏРј СЃР°РјРёС… Р·Р°РїСЂРѕСЃРѕРІ
 	for (const json::Node& request_map : requests.AsArray()) {
-		// Если узел запроса не является словарем - выбрасываем исключение invalid_argument
-		if (!request_map.IsMap()) {
+		// Р•СЃР»Рё СѓР·РµР» Р·Р°РїСЂРѕСЃР° РЅРµ СЏРІР»СЏРµС‚СЃСЏ СЃР»РѕРІР°СЂРµРј - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument
+		if (!request_map.IsDict()) {
 			throw invalid_argument("Insertation request node must be map"s);
 		}
 
-		if (request_map.AsMap().at("type"s) == "Stop"s) {
-			AddStop(request_map.AsMap());
+		if (request_map.AsDict().at("type"s) == "Stop"s) {
+			AddStop(request_map.AsDict());
 		}
-		else if (request_map.AsMap().at("type"s) == "Bus"s) {
-			// Складируем запросы на добавление маршрутов, обрабатываем их только после
-			// добавления в справочник всех остановок
-			routes.push_back(&request_map.AsMap());
+		else if (request_map.AsDict().at("type"s) == "Bus"s) {
+			// РЎРєР»Р°РґРёСЂСѓРµРј Р·Р°РїСЂРѕСЃС‹ РЅР° РґРѕР±Р°РІР»РµРЅРёРµ РјР°СЂС€СЂСѓС‚РѕРІ, РѕР±СЂР°Р±Р°С‚С‹РІР°РµРј РёС… С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ 
+			// РґРѕР±Р°РІР»РµРЅРёСЏ РІ СЃРїСЂР°РІРѕС‡РЅРёРє РІСЃРµС… РѕСЃС‚Р°РЅРѕРІРѕРє
+			routes.push_back(&request_map.AsDict());
 		}
 		/*
 		else {
@@ -86,13 +87,13 @@ void JsonIOHandler::ProcessInsertationRequests(const json::Node& requests) {
 		*/
 	}
 
-	// Итерируемся по запросам на добавление маршрутов
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ Р·Р°РїСЂРѕСЃР°Рј РЅР° РґРѕР±Р°РІР»РµРЅРёРµ РјР°СЂС€СЂСѓС‚РѕРІ
 	for (const json::Dict* request_map : routes) {
 		AddRoute(*request_map);
 	}
 }
 
-// Вносит в справочник информацию об остановке из запроса
+// Р’РЅРѕСЃРёС‚ РІ СЃРїСЂР°РІРѕС‡РЅРёРє РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РѕСЃС‚Р°РЅРѕРІРєРµ РёР· Р·Р°РїСЂРѕСЃР°
 void JsonIOHandler::AddStop(const json::Dict& request_map) {
 	catalogue_.AddStop({
 		request_map.at("name").AsString(),
@@ -100,11 +101,11 @@ void JsonIOHandler::AddStop(const json::Dict& request_map) {
 		request_map.at("longitude").AsDouble()
 		});
 
-	// Итерируемся по массиву road_distances при наличии, 
-	// вносим информацию по расстояниям в справочник
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РјР°СЃСЃРёРІСѓ road_distances РїСЂРё РЅР°Р»РёС‡РёРё, 
+	// РІРЅРѕСЃРёРј РёРЅС„РѕСЂРјР°С†РёСЋ РїРѕ СЂР°СЃСЃС‚РѕСЏРЅРёСЏРј РІ СЃРїСЂР°РІРѕС‡РЅРёРє
 	auto it = request_map.find("road_distances"s);
 	if (it != request_map.end()) {
-		for (const auto& [station_name, distance] : it->second.AsMap()) {
+		for (const auto& [station_name, distance] : it->second.AsDict()) {
 			catalogue_.AddActualDistance(
 				request_map.at("name").AsString(),
 				station_name,
@@ -113,21 +114,21 @@ void JsonIOHandler::AddStop(const json::Dict& request_map) {
 		}
 	}
 }
-// Вносит в справочник информацию о маршруте из запроса
+// Р’РЅРѕСЃРёС‚ РІ СЃРїСЂР°РІРѕС‡РЅРёРє РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РјР°СЂС€СЂСѓС‚Рµ РёР· Р·Р°РїСЂРѕСЃР°
 void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 	vector<transport_catalogue::Stop*> stops;
 
-	// Если отсутствует массив остановок - выбрасываем исключение invalid_argument
+	// Р•СЃР»Рё РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РјР°СЃСЃРёРІ РѕСЃС‚Р°РЅРѕРІРѕРє - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument
 	if (request_map.find("stops") == request_map.end()) {
 		throw invalid_argument("Stops array is missing in route insertion request"s);
 	}
-	// Если значение параметра "stops" не является массивом - также
-	// выбрасываем исключение invalid_argument
+	// Р•СЃР»Рё Р·РЅР°С‡РµРЅРёРµ РїР°СЂР°РјРµС‚СЂР° "stops" РЅРµ СЏРІР»СЏРµС‚СЃСЏ РјР°СЃСЃРёРІРѕРј - С‚Р°РєР¶Рµ
+	// РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument
 	else if (!request_map.at("stops"s).IsArray()) {
 		throw invalid_argument("Stops must be in array"s);
 	}
-	// Если массив остановок пуст - добавляем в справочник маршрут с пустым контейнером указателей,
-	// покидаем метод
+	// Р•СЃР»Рё РјР°СЃСЃРёРІ РѕСЃС‚Р°РЅРѕРІРѕРє РїСѓСЃС‚ - РґРѕР±Р°РІР»СЏРµРј РІ СЃРїСЂР°РІРѕС‡РЅРёРє РјР°СЂС€СЂСѓС‚ СЃ РїСѓСЃС‚С‹Рј РєРѕРЅС‚РµР№РЅРµСЂРѕРј СѓРєР°Р·Р°С‚РµР»РµР№,
+	// РїРѕРєРёРґР°РµРј РјРµС‚РѕРґ
 	else if (request_map.at("stops"s).AsArray().empty()) {
 		catalogue_.AddRoute({
 			request_map.at("name"s).AsString(),
@@ -137,14 +138,14 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 		return;
 	}
 
-	// Итерируемся по остановкам, добавляем их в контейнер
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РѕСЃС‚Р°РЅРѕРІРєР°Рј, РґРѕР±Р°РІР»СЏРµРј РёС… РІ РєРѕРЅС‚РµР№РЅРµСЂ
 	for (const json::Node& station : request_map.at("stops"s).AsArray()) {
 		stops.push_back(
 			const_cast<transport_catalogue::Stop*>(catalogue_.FindStop(station.AsString()))
 		);
 	}
 
-	// Если маршрут не кольцевой - добавляем все станции в обратном порядке, кроме текущей
+	// Р•СЃР»Рё РјР°СЂС€СЂСѓС‚ РЅРµ РєРѕР»СЊС†РµРІРѕР№ - РґРѕР±Р°РІР»СЏРµРј РІСЃРµ СЃС‚Р°РЅС†РёРё РІ РѕР±СЂР°С‚РЅРѕРј РїРѕСЂСЏРґРєРµ, РєСЂРѕРјРµ С‚РµРєСѓС‰РµР№
 	if (!request_map.at("is_roundtrip"s).AsBool()) {
 		for (size_t pos = stops.size() - 1; pos > 0; --pos) {
 			stops.push_back(stops.at(pos - 1));
@@ -158,34 +159,34 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 		});
 }
 
-// Обрыбытвает поисковые запросы, возвращает json-документ с результатами
+// РћР±СЂС‹Р±С‹С‚РІР°РµС‚ РїРѕРёСЃРєРѕРІС‹Рµ Р·Р°РїСЂРѕСЃС‹, РІРѕР·РІСЂР°С‰Р°РµС‚ json-РґРѕРєСѓРјРµРЅС‚ СЃ СЂРµР·СѓР»СЊС‚Р°С‚Р°РјРё
 [[nodiscard]] json::Document JsonIOHandler::ProcessStatRequests(const json::Node& requests) const {
-	// Если запросы находятся не в массиве - выбрасываем исключение invalid_argument,
-	// а если массив запросов пуст - выходим из метода
+	// Р•СЃР»Рё Р·Р°РїСЂРѕСЃС‹ РЅР°С…РѕРґСЏС‚СЃСЏ РЅРµ РІ РјР°СЃСЃРёРІРµ - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument,
+	// Р° РµСЃР»Рё РјР°СЃСЃРёРІ Р·Р°РїСЂРѕСЃРѕРІ РїСѓСЃС‚ - РІС‹С…РѕРґРёРј РёР· РјРµС‚РѕРґР°
 	if (!requests.IsArray()) {
 		throw invalid_argument("Stat requests must be in array"s);
 	}
 	else if (requests.AsArray().empty()) {
-		return json::Document(json::Node());
+		return json::Document{};
 	}
 
-	vector<json::Node> results; // Вектор json-узлов результатов поиска
+	json::Array results; // json-РјР°СЃСЃРёРІ СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ РїРѕРёСЃРєР°
 
-	// Итерируемся по словарям самих запросов
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ СЃР»РѕРІР°СЂСЏРј СЃР°РјРёС… Р·Р°РїСЂРѕСЃРѕРІ
 	for (const json::Node& request_map : requests.AsArray()) {
-		// Если узел запроса не является словарем - выбрасываем исключение invalid_argument
-		if (!request_map.IsMap()) {
+		// Р•СЃР»Рё СѓР·РµР» Р·Р°РїСЂРѕСЃР° РЅРµ СЏРІР»СЏРµС‚СЃСЏ СЃР»РѕРІР°СЂРµРј - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument
+		if (!request_map.IsDict()) {
 			throw invalid_argument("Stat request node must be map"s);
 		}
 
-		if (request_map.AsMap().at("type"s) == "Stop"s) {
-			results.push_back(FindStop(request_map.AsMap()));
+		if (request_map.AsDict().at("type"s) == "Stop"s) {
+			results.push_back(FindStop(request_map.AsDict()));
 		}
-		else if (request_map.AsMap().at("type"s) == "Bus"s) {
-			results.push_back(FindRoute(request_map.AsMap()));
+		else if (request_map.AsDict().at("type"s) == "Bus"s) {
+			results.push_back(FindRoute(request_map.AsDict()));
 		}
-		else if (request_map.AsMap().at("type"s) == "Map"s) {
-			results.push_back(RenderMap(request_map.AsMap()));
+		else if (request_map.AsDict().at("type"s) == "Map"s) {
+			results.push_back(RenderMap(request_map.AsDict()));
 		}
 		/*
 		else {
@@ -194,134 +195,146 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 		*/
 	}
 
-	json::Document result_doc(results);
-	return result_doc;
+	return json::Document(results);
 }
 
-// Возвращает json-узел с данными по остановке
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-СѓР·РµР» СЃ РґР°РЅРЅС‹РјРё РїРѕ РѕСЃС‚Р°РЅРѕРІРєРµ
 json::Node JsonIOHandler::FindStop(const json::Dict& request_map) const {
 	std::optional<std::set<std::string_view>> stops =
 		catalogue_.GetRoutesOnStopInfo(request_map.at("name"s).AsString());
 
-	// Если такая остановка не была добавлена - возвращаем шаблонный ответ
+	// Р•СЃР»Рё С‚Р°РєР°СЏ РѕСЃС‚Р°РЅРѕРІРєР° РЅРµ Р±С‹Р»Р° РґРѕР±Р°РІР»РµРЅР° - РІРѕР·РІСЂР°С‰Р°РµРј С€Р°Р±Р»РѕРЅРЅС‹Р№ РѕС‚РІРµС‚ 
 	if (!stops) {
-		json::Dict output = {
-			{"request_id"s, json::Node(request_map.at("id"s))},
-			{"error_message"s, json::Node("not found"s)}
-		};
-		return json::Node(output);
+		return json::Builder{}
+			.StartDict()
+				.Key("request_id"s)
+				.Value(request_map.at("id"s))
+				.Key("error_message"s)
+				.Value("not found"s)
+			.EndDict()
+			.Build();
 	}
 
-	vector<json::Node> stops_nodes;
-	// Итерируемся по остановкам, добавляем новые узлы в stops_nodes
+	json::Array stops_nodes;
+	// РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РѕСЃС‚Р°РЅРѕРІРєР°Рј, РґРѕР±Р°РІР»СЏРµРј РЅРѕРІС‹Рµ СѓР·Р»С‹ РІ stops_nodes
 	for (string_view stop : stops.value()) {
-		stops_nodes.push_back(json::Node(string{ stop }));
+		stops_nodes.push_back(string{ stop });
 	}
 
-	// Сохраним в json-словарь данные о остановке
-	json::Dict output = {
-			{"request_id"s, json::Node(request_map.at("id"s))},
-			{"buses"s, json::Node(stops_nodes)}
-	};
-	return output;
+	return json::Builder{}
+		.StartDict()
+			.Key("request_id"s)
+			.Value(request_map.at("id"s))
+			.Key("buses"s)
+			.Value(stops_nodes)
+		.EndDict()
+		.Build();
 }
-// Возвращает json-узел с данными по маршруту
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-СѓР·РµР» СЃ РґР°РЅРЅС‹РјРё РїРѕ РјР°СЂС€СЂСѓС‚Сѓ
 json::Node JsonIOHandler::FindRoute(const json::Dict& request_map) const {
 	std::optional<transport_catalogue::RouteInfo> route_info =
 		catalogue_.GetRouteInfo(request_map.at("name"s).AsString());
 
-	// Если такой маршрут не был добавлен - возвращаем шаблонный ответ
+	// Р•СЃР»Рё С‚Р°РєРѕР№ РјР°СЂС€СЂСѓС‚ РЅРµ Р±С‹Р» РґРѕР±Р°РІР»РµРЅ - РІРѕР·РІСЂР°С‰Р°РµРј С€Р°Р±Р»РѕРЅРЅС‹Р№ РѕС‚РІРµС‚
 	if (!route_info) {
-		json::Dict output = {
-			{"request_id"s, json::Node(request_map.at("id"s))},
-			{"error_message"s, json::Node("not found"s)}
-		};
-		return json::Node(output);
+		return json::Builder{}
+			.StartDict()
+				.Key("request_id"s)
+				.Value(request_map.at("id"s))
+				.Key("error_message"s)
+				.Value("not found"s)
+			.EndDict()
+			.Build();
 	}
 
-	// Сохраним в json-словарь данные о маршруте
-	json::Dict output = {
-		{"request_id"s, json::Node(request_map.at("id"s))},
-		{"curvature"s, json::Node(
-			(route_info.value().fact_distance / route_info.value().geo_distance)
-		)},
-		{"route_length"s, json::Node(route_info.value().fact_distance)},
-		{"stop_count"s, json::Node(static_cast<int>(route_info.value().total_stops))},
-		{"unique_stop_count"s, json::Node(static_cast<int>(route_info.value().unique_stops))}
-	};
-	return output;
+	return json::Builder{}
+		.StartDict()
+			.Key("request_id"s)
+			.Value(request_map.at("id"s))
+			.Key("curvature"s)
+			.Value((route_info.value().fact_distance / route_info.value().geo_distance))
+			.Key("route_length"s)
+			.Value(route_info.value().fact_distance)
+			.Key("stop_count"s)
+			.Value(static_cast<int>(route_info.value().total_stops))
+			.Key("unique_stop_count"s)
+			.Value(static_cast<int>(route_info.value().unique_stops))
+		.EndDict()
+		.Build();
 }
-// Возвращает json-узел с svg-документом карты справочника
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ json-СѓР·РµР» СЃ svg-РґРѕРєСѓРјРµРЅС‚РѕРј РєР°СЂС‚С‹ СЃРїСЂР°РІРѕС‡РЅРёРєР°
 [[nodiscard]] json::Node JsonIOHandler::RenderMap(const json::Dict& request_map) const {
-	// Создаем поток для вывода svg-документа карты, рендерим её в этот поток
+	// РЎРѕР·РґР°РµРј РїРѕС‚РѕРє РґР»СЏ РІС‹РІРѕРґР° svg-РґРѕРєСѓРјРµРЅС‚Р° РєР°СЂС‚С‹, СЂРµРЅРґРµСЂРёРј РµС‘ РІ СЌС‚РѕС‚ РїРѕС‚РѕРє
 	stringstream stream;
 	renderer_.Rend(stream);
 
-	// Создаем словарь, передаем содержимое потока как значение ключа "map"
-	json::Dict output = {
-		{"request_id"s, json::Node(request_map.at("id"s))},
-		{"map", stream.str()}
-	};
-	return output;
+	return json::Builder{}
+		.StartDict()
+			.Key("request_id"s)
+			.Value(request_map.at("id"s))
+			.Key("map"s)
+			.Value(stream.str())
+		.EndDict()
+		.Build();
 }
 
-// Обрабатывает узел настроек визуализации карты
+// РћР±СЂР°Р±Р°С‚С‹РІР°РµС‚ СѓР·РµР» РЅР°СЃС‚СЂРѕРµРє РІРёР·СѓР°Р»РёР·Р°С†РёРё РєР°СЂС‚С‹
 void JsonIOHandler::ProcessVisualisationSettings(const json::Node& settings) {
-	// Если настройки находятся не в словаре, или словарь настроек пуст 
-	// - выбрасываем исключение invalid_argument
-	if (!settings.IsMap()) {
+	// Р•СЃР»Рё РЅР°СЃС‚СЂРѕР№РєРё РЅР°С…РѕРґСЏС‚СЃСЏ РЅРµ РІ СЃР»РѕРІР°СЂРµ, РёР»Рё СЃР»РѕРІР°СЂСЊ РЅР°СЃС‚СЂРѕРµРє РїСѓСЃС‚ 
+	// - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ invalid_argument
+	if (!settings.IsDict()) {
 		throw invalid_argument("Visualisation settings node must be map"s);
 	}
-	else if (settings.AsMap().empty()) {
+	else if (settings.AsDict().empty()) {
 		throw invalid_argument("Missing visualisation settings"s);
 	}
 
-	// Создаем вектор-палитру цветов
+	// РЎРѕР·РґР°РµРј РІРµРєС‚РѕСЂ-РїР°Р»РёС‚СЂСѓ С†РІРµС‚РѕРІ
 	vector<svg::Color> color_palette;
-	for (const json::Node& color_node : settings.AsMap().at("color_palette"s).AsArray()) {
+	for (const json::Node& color_node : settings.AsDict().at("color_palette"s).AsArray()) {
 		color_palette.push_back(GetColor(color_node));
 	}
 
-	// Передаем в структуру значения из запроса
-	MapVisualisationSettings settings_struct{
-		settings.AsMap().at("width").AsDouble(),
-		settings.AsMap().at("height").AsDouble(),
+	// РџРµСЂРµРґР°РµРј РІ СЃС‚СЂСѓРєС‚СѓСЂСѓ Р·РЅР°С‡РµРЅРёСЏ РёР· Р·Р°РїСЂРѕСЃР°
+	renderer::MapVisualisationSettings settings_struct{
+		settings.AsDict().at("width").AsDouble(),
+		settings.AsDict().at("height").AsDouble(),
 
-		settings.AsMap().at("padding").AsDouble(),
+		settings.AsDict().at("padding").AsDouble(),
 
-		settings.AsMap().at("line_width").AsDouble(),
-		settings.AsMap().at("stop_radius").AsDouble(),
+		settings.AsDict().at("line_width").AsDouble(),
+		settings.AsDict().at("stop_radius").AsDouble(),
 
-		settings.AsMap().at("bus_label_font_size").AsInt(),
-		{ settings.AsMap().at("bus_label_offset").AsArray().at(0).AsDouble(),
-		settings.AsMap().at("bus_label_offset").AsArray().at(1).AsDouble() },
+		settings.AsDict().at("bus_label_font_size").AsInt(),
+		{ settings.AsDict().at("bus_label_offset").AsArray().at(0).AsDouble(),
+		settings.AsDict().at("bus_label_offset").AsArray().at(1).AsDouble() },
 
-		settings.AsMap().at("stop_label_font_size").AsInt(),
-		{ settings.AsMap().at("stop_label_offset").AsArray().at(0).AsDouble(),
-		settings.AsMap().at("stop_label_offset").AsArray().at(1).AsDouble() },
+		settings.AsDict().at("stop_label_font_size").AsInt(),
+		{ settings.AsDict().at("stop_label_offset").AsArray().at(0).AsDouble(),
+		settings.AsDict().at("stop_label_offset").AsArray().at(1).AsDouble() },
 
-		GetColor(settings.AsMap().at("underlayer_color")),
-		settings.AsMap().at("underlayer_width").AsDouble(),
+		GetColor(settings.AsDict().at("underlayer_color")),
+		settings.AsDict().at("underlayer_width").AsDouble(),
 
 		color_palette
 	};
 
-	// Задаем полученные настройки рендера
+	// Р—Р°РґР°РµРј РїРѕР»СѓС‡РµРЅРЅС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё СЂРµРЅРґРµСЂР°
 	renderer_.SetRenderSettings(move(settings_struct));
 }
-// Возвращает цвет svg::Color, находящийся в переданном узле
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ С†РІРµС‚ svg::Color, РЅР°С…РѕРґСЏС‰РёР№СЃСЏ РІ РїРµСЂРµРґР°РЅРЅРѕРј СѓР·Р»Рµ
 [[nodiscard]] svg::Color JsonIOHandler::GetColor(const json::Node& color_node) const {
-	// Если узел является строкой - возвращаем строку
+	// Р•СЃР»Рё СѓР·РµР» СЏРІР»СЏРµС‚СЃСЏ СЃС‚СЂРѕРєРѕР№ - РІРѕР·РІСЂР°С‰Р°РµРј СЃС‚СЂРѕРєСѓ
 	if (color_node.IsString()) {
 		return { color_node.AsString() };
 	}
-	// Если узел не является массивом - выбрасываем исключение
+	// Р•СЃР»Рё СѓР·РµР» РЅРµ СЏРІР»СЏРµС‚СЃСЏ РјР°СЃСЃРёРІРѕРј - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ
 	else if (!color_node.IsArray()) {
 		throw invalid_argument("Wrong color type"s);
 	}
 
-	// Возвращаем svg::Rgb или svg::Rgba в зависимости от размера массива,
-	// если нет нужного размера - выбрасываем исключение
+	// Р’РѕР·РІСЂР°С‰Р°РµРј svg::Rgb РёР»Рё svg::Rgba РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЂР°Р·РјРµСЂР° РјР°СЃСЃРёРІР°,
+	// РµСЃР»Рё РЅРµС‚ РЅСѓР¶РЅРѕРіРѕ СЂР°Р·РјРµСЂР° - РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ
 	if (color_node.AsArray().size() == 3) {
 		return svg::Rgb{
 			static_cast<uint8_t>(color_node.AsArray().at(0).AsDouble()),

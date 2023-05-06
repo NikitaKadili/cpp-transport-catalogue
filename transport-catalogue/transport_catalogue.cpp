@@ -7,12 +7,12 @@ using namespace std;
 
 namespace transport_catalogue {
 
-// Добавление остановки в базу
+// Р”РѕР±Р°РІР»РµРЅРёРµ РѕСЃС‚Р°РЅРѕРІРєРё РІ Р±Р°Р·Сѓ
 void TransportCatalogue::AddStop(const Stop& stop) {
-	// Находим указатель на остановку, если она была добавлена ранее
+	// РќР°С…РѕРґРёРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РѕСЃС‚Р°РЅРѕРІРєСѓ, РµСЃР»Рё РѕРЅР° Р±С‹Р»Р° РґРѕР±Р°РІР»РµРЅР° СЂР°РЅРµРµ
 	Stop* ptr = GetStopPtr(stop.name);
 
-	// Если остановка была добавлена ранее, обновляем координаты
+	// Р•СЃР»Рё РѕСЃС‚Р°РЅРѕРІРєР° Р±С‹Р»Р° РґРѕР±Р°РІР»РµРЅР° СЂР°РЅРµРµ, РѕР±РЅРѕРІР»СЏРµРј РєРѕРѕСЂРґРёРЅР°С‚С‹
 	if (ptr != nullptr) {
 		ptr->longitude = stop.longitude;
 		ptr->latitude = stop.latitude;
@@ -25,14 +25,14 @@ void TransportCatalogue::AddStop(const Stop& stop) {
 	stops_to_routes_[ptr->name] = {};
 }
 
-// Добавление фактического расстояния между остановками
+// Р”РѕР±Р°РІР»РµРЅРёРµ С„Р°РєС‚РёС‡РµСЃРєРѕРіРѕ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ РјРµР¶РґСѓ РѕСЃС‚Р°РЅРѕРІРєР°РјРё
 void TransportCatalogue::AddActualDistance(string_view from, string_view to, double distance) {
-	// Запрашиваем указатели на остановки from и to
+	// Р—Р°РїСЂР°С€РёРІР°РµРј СѓРєР°Р·Р°С‚РµР»Рё РЅР° РѕСЃС‚Р°РЅРѕРІРєРё from Рё to
 	Stop* from_ptr = GetStopPtr(from);
 	Stop* to_ptr = GetStopPtr(to);
 
-	// Если они не были добавлены ранее - добавляем их с нулевыми координатами
-	// и обновляем указатели на них
+	// Р•СЃР»Рё РѕРЅРё РЅРµ Р±С‹Р»Рё РґРѕР±Р°РІР»РµРЅС‹ СЂР°РЅРµРµ - РґРѕР±Р°РІР»СЏРµРј РёС… СЃ РЅСѓР»РµРІС‹РјРё РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё
+	// Рё РѕР±РЅРѕРІР»СЏРµРј СѓРєР°Р·Р°С‚РµР»Рё РЅР° РЅРёС…
 	if (from_ptr == nullptr) {
 		AddStop({ string{ from }, 0.0, 0.0 });
 		from_ptr = GetStopPtr(from);
@@ -42,23 +42,23 @@ void TransportCatalogue::AddActualDistance(string_view from, string_view to, dou
 		to_ptr = GetStopPtr(to);
 	}
 
-	// Вносим расстояние для пары [from, to]
+	// Р’РЅРѕСЃРёРј СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґР»СЏ РїР°СЂС‹ [from, to]
 	stops_pairs_to_distances_[{ from_ptr, to_ptr }] = distance;
 
-	// Если расстояние для пары [to, from] не было добавлено ранее - добавляем и его
+	// Р•СЃР»Рё СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґР»СЏ РїР°СЂС‹ [to, from] РЅРµ Р±С‹Р»Рѕ РґРѕР±Р°РІР»РµРЅРѕ СЂР°РЅРµРµ - РґРѕР±Р°РІР»СЏРµРј Рё РµРіРѕ
 	if (stops_pairs_to_distances_.find({ to_ptr, from_ptr }) == stops_pairs_to_distances_.end()) {
 		stops_pairs_to_distances_[{ to_ptr, from_ptr }] = distance;
 	}
 }
 
-// Добавление маршрута в базу
+// Р”РѕР±Р°РІР»РµРЅРёРµ РјР°СЂС€СЂСѓС‚Р° РІ Р±Р°Р·Сѓ
 void TransportCatalogue::AddRoute(const Route& route) {
-	// Подсчет количества уникальных остановок и дистанции маршрута
+	// РџРѕРґСЃС‡РµС‚ РєРѕР»РёС‡РµСЃС‚РІР° СѓРЅРёРєР°Р»СЊРЅС‹С… РѕСЃС‚Р°РЅРѕРІРѕРє Рё РґРёСЃС‚Р°РЅС†РёРё РјР°СЂС€СЂСѓС‚Р°
 	unordered_set<Stop*> unique_stops;
 	unique_stops.insert(route.stops.front());
 
-	double geo_distance = 0.0; // Географическое расстояние по координатам
-	double fact_distance = 0; // Фактическое расстояние
+	double geo_distance = 0.0; // Р“РµРѕРіСЂР°С„РёС‡РµСЃРєРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёРµ РїРѕ РєРѕРѕСЂРґРёРЅР°С‚Р°Рј
+	double fact_distance = 0; // Р¤Р°РєС‚РёС‡РµСЃРєРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёРµ
 	for (size_t i = 1; i < route.stops.size(); ++i) {
 		unique_stops.insert(route.stops.at(i));
 
@@ -73,17 +73,17 @@ void TransportCatalogue::AddRoute(const Route& route) {
 	Route* ptr = &routes_.back();
 	routes_to_structs_[ptr->number] = ptr;
 
-	// Добавляем указатель на маршрут в словарь stops_to_routes_
+	// Р”РѕР±Р°РІР»СЏРµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РјР°СЂС€СЂСѓС‚ РІ СЃР»РѕРІР°СЂСЊ stops_to_routes_
 	for (Stop* ptr_to_stop : unique_stops) {
 		stops_to_routes_.at(ptr_to_stop->name).insert(ptr->number);
 	}
 
-	// Вносим общую информацию по маршруту в routes_to_routes_info_
+	// Р’РЅРѕСЃРёРј РѕР±С‰СѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ РїРѕ РјР°СЂС€СЂСѓС‚Сѓ РІ routes_to_routes_info_
 	routes_to_routes_info_[ptr->number]
 		= { route.stops.size(), unique_stops.size(), geo_distance, fact_distance };
 }
 
-// Поиск остановки по имени, возвращает константный указатель на остановку
+// РџРѕРёСЃРє РѕСЃС‚Р°РЅРѕРІРєРё РїРѕ РёРјРµРЅРё, РІРѕР·РІСЂР°С‰Р°РµС‚ РєРѕРЅСЃС‚Р°РЅС‚РЅС‹Р№ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РѕСЃС‚Р°РЅРѕРІРєСѓ
 const Stop* TransportCatalogue::FindStop(string_view name) const {
 	auto it = stops_to_structs_.find(name);
 	if (it != stops_to_structs_.end()) {
@@ -93,7 +93,7 @@ const Stop* TransportCatalogue::FindStop(string_view name) const {
 	return nullptr;
 }
 
-// Поиск маршрута по имени, возвращает константный указатель на машрут
+// РџРѕРёСЃРє РјР°СЂС€СЂСѓС‚Р° РїРѕ РёРјРµРЅРё, РІРѕР·РІСЂР°С‰Р°РµС‚ РєРѕРЅСЃС‚Р°РЅС‚РЅС‹Р№ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РјР°С€СЂСѓС‚
 const Route* TransportCatalogue::FindRoute(string_view number) const {
 	auto it = routes_to_structs_.find(number);
 	if (it != routes_to_structs_.end()) {
@@ -103,7 +103,7 @@ const Route* TransportCatalogue::FindRoute(string_view number) const {
 	return nullptr;
 }
 
-// Получение основной информации о маршруте
+// РџРѕР»СѓС‡РµРЅРёРµ РѕСЃРЅРѕРІРЅРѕР№ РёРЅС„РѕСЂРјР°С†РёРё Рѕ РјР°СЂС€СЂСѓС‚Рµ
 optional<RouteInfo> TransportCatalogue::GetRouteInfo(string_view number) const {
 	auto it = routes_to_routes_info_.find(number);
 	if (it != routes_to_routes_info_.end()) {
@@ -113,7 +113,7 @@ optional<RouteInfo> TransportCatalogue::GetRouteInfo(string_view number) const {
 	return nullopt;
 }
 
-// Получение информации о маршрутах, проходящих через остановку
+// РџРѕР»СѓС‡РµРЅРёРµ РёРЅС„РѕСЂРјР°С†РёРё Рѕ РјР°СЂС€СЂСѓС‚Р°С…, РїСЂРѕС…РѕРґСЏС‰РёС… С‡РµСЂРµР· РѕСЃС‚Р°РЅРѕРІРєСѓ
 optional<set<string_view>> TransportCatalogue::GetRoutesOnStopInfo(string_view name) const {
 	auto it = stops_to_routes_.find(name);
 	if (it != stops_to_routes_.end()) {
@@ -123,27 +123,27 @@ optional<set<string_view>> TransportCatalogue::GetRoutesOnStopInfo(string_view n
 	return nullopt;
 }
 
-// Возвращает ссылку на словарь всех маршрутов
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЃСЃС‹Р»РєСѓ РЅР° СЃР»РѕРІР°СЂСЊ РІСЃРµС… РјР°СЂС€СЂСѓС‚РѕРІ
 const unordered_map<string_view, Route*>& TransportCatalogue::GetRoutesMap() const {
 	return routes_to_structs_;
 }
-// Возвращает ссылку словарь всех остановок
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЃСЃС‹Р»РєСѓ СЃР»РѕРІР°СЂСЊ РІСЃРµС… РѕСЃС‚Р°РЅРѕРІРѕРє
 const std::unordered_map<std::string_view, Stop*>& TransportCatalogue::GetStopsMap() const {
 	return stops_to_structs_;
 }
-// Возвращает ссылку на дэк всех остановок
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЃСЃС‹Р»РєСѓ РЅР° РґСЌРє РІСЃРµС… РѕСЃС‚Р°РЅРѕРІРѕРє
 const deque<Stop>& TransportCatalogue::GetStops() const {
 	return stops_;
 }
-// Возвращает ссылку на словарь, где:
-// ключ - наименование остановки;
-// значение - множество наименование маршрутов, проходящих через остановку
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЃСЃС‹Р»РєСѓ РЅР° СЃР»РѕРІР°СЂСЊ, РіРґРµ:
+// РєР»СЋС‡ - РЅР°РёРјРµРЅРѕРІР°РЅРёРµ РѕСЃС‚Р°РЅРѕРІРєРё;
+// Р·РЅР°С‡РµРЅРёРµ - РјРЅРѕР¶РµСЃС‚РІРѕ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚РѕРІ, РїСЂРѕС…РѕРґСЏС‰РёС… С‡РµСЂРµР· РѕСЃС‚Р°РЅРѕРІРєСѓ
 const unordered_map<string_view, set<std::string_view>>&
 TransportCatalogue::GetStopsToRoutes() const {
 	return stops_to_routes_;
 }
 
-// Возвращает расстояние между координатами остановки from и to
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЂР°СЃСЃС‚РѕСЏРЅРёРµ РјРµР¶РґСѓ РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё РѕСЃС‚Р°РЅРѕРІРєРё from Рё to
 double TransportCatalogue::CountDistanceBetweenStops(Stop* from, Stop* to) const {
 	return geo::ComputeDistance(
 		{ from->latitude, from->longitude },
@@ -151,13 +151,13 @@ double TransportCatalogue::CountDistanceBetweenStops(Stop* from, Stop* to) const
 	);
 }
 
-// Хэш-функция для std::pair<Stop*, Stop*>
+// РҐСЌС€-С„СѓРЅРєС†РёСЏ РґР»СЏ std::pair<Stop*, Stop*>
 size_t TransportCatalogue::StopsPairHasher::operator()(const pair<Stop*, Stop*>& stops) const {
 	return reinterpret_cast<size_t>(stops.first) * 13
 		+ reinterpret_cast<size_t>(stops.second) * 13 * 13;
 }
 
-// Возвращает указатель на остановку
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РѕСЃС‚Р°РЅРѕРІРєСѓ
 Stop* TransportCatalogue::GetStopPtr(string_view name) noexcept {
 	auto it = stops_to_structs_.find(name);
 	if (it != stops_to_structs_.end()) {
@@ -167,7 +167,7 @@ Stop* TransportCatalogue::GetStopPtr(string_view name) noexcept {
 	return nullptr;
 }
 
-// Возвращает указатель на машрут
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РјР°С€СЂСѓС‚
 Route* TransportCatalogue::GetRoutePtr(string_view number) noexcept {
 	auto it = routes_to_structs_.find(number);
 	if (it != routes_to_structs_.end()) {

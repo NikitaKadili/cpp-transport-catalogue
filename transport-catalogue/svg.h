@@ -10,7 +10,7 @@
 
 namespace svg {
 
-// Структура хранит информацию о цвете в формате RGB
+// РЎС‚СЂСѓРєС‚СѓСЂР° С…СЂР°РЅРёС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С†РІРµС‚Рµ РІ С„РѕСЂРјР°С‚Рµ RGB
 struct Rgb {
     Rgb() = default;
     Rgb(uint8_t r, uint8_t g, uint8_t b);
@@ -19,7 +19,7 @@ struct Rgb {
     uint8_t green = 0;
     uint8_t blue = 0;
 };
-// Структура хранит информацию о цвете в формате RGBA
+// РЎС‚СЂСѓРєС‚СѓСЂР° С…СЂР°РЅРёС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С†РІРµС‚Рµ РІ С„РѕСЂРјР°С‚Рµ RGBA
 struct Rgba : public Rgb {
     Rgba() = default;
     Rgba(uint8_t r, uint8_t g, uint8_t b, double op);
@@ -29,7 +29,7 @@ struct Rgba : public Rgb {
 
 using Color = std::variant<std::monostate, std::string, Rgb, Rgba>;
 inline const Color NoneColor{ std::monostate() };
-// Вспомонательный класс для вывода цвета
+// Р’СЃРїРѕРјРѕРЅР°С‚РµР»СЊРЅС‹Р№ РєР»Р°СЃСЃ РґР»СЏ РІС‹РІРѕРґР° С†РІРµС‚Р°
 struct ColorPrinter {
     std::ostream& os;
     void operator()(std::monostate);
@@ -38,13 +38,13 @@ struct ColorPrinter {
     void operator()(Rgba rgba);
 };
 
-// Тип форма конца линии
+// РўРёРї С„РѕСЂРјР° РєРѕРЅС†Р° Р»РёРЅРёРё
 enum class StrokeLineCap {
     BUTT,
     ROUND,
     SQUARE,
 };
-// Тип формы соединения линии
+// РўРёРї С„РѕСЂРјС‹ СЃРѕРµРґРёРЅРµРЅРёСЏ Р»РёРЅРёРё
 enum class StrokeLineJoin {
     ARCS,
     BEVEL,
@@ -53,11 +53,11 @@ enum class StrokeLineJoin {
     ROUND,
 };
 
-// Перегрузка оператора вывода для Color
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РґР»СЏ Color
 std::ostream& operator<<(std::ostream& os, const Color& color);
-// Перегрузка оператора вывода для StrokeLineCap
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РґР»СЏ StrokeLineCap
 std::ostream& operator<<(std::ostream& os, StrokeLineCap line_cap);
-// Перегрузка оператора вывода для StrokeLineJoin
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РґР»СЏ StrokeLineJoin
 std::ostream& operator<<(std::ostream& os, StrokeLineJoin line_join);
 
 template <typename Owner>
@@ -129,8 +129,8 @@ struct Point {
 };
 
 /*
- * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
- * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
+ * Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ СЃС‚СЂСѓРєС‚СѓСЂР°, С…СЂР°РЅСЏС‰Р°СЏ РєРѕРЅС‚РµРєСЃС‚ РґР»СЏ РІС‹РІРѕРґР° SVG-РґРѕРєСѓРјРµРЅС‚Р° СЃ РѕС‚СЃС‚СѓРїР°РјРё.
+ * РҐСЂР°РЅРёС‚ СЃСЃС‹Р»РєСѓ РЅР° РїРѕС‚РѕРє РІС‹РІРѕРґР°, С‚РµРєСѓС‰РµРµ Р·РЅР°С‡РµРЅРёРµ Рё С€Р°Рі РѕС‚СЃС‚СѓРїР° РїСЂРё РІС‹РІРѕРґРµ СЌР»РµРјРµРЅС‚Р°
  */
 struct RenderContext {
     RenderContext(std::ostream& out)
@@ -159,9 +159,9 @@ struct RenderContext {
 };
 
 /*
- * Абстрактный базовый класс Object служит для унифицированного хранения
- * конкретных тегов SVG-документа
- * Реализует паттерн "Шаблонный метод" для вывода содержимого тега
+ * РђР±СЃС‚СЂР°РєС‚РЅС‹Р№ Р±Р°Р·РѕРІС‹Р№ РєР»Р°СЃСЃ Object СЃР»СѓР¶РёС‚ РґР»СЏ СѓРЅРёС„РёС†РёСЂРѕРІР°РЅРЅРѕРіРѕ С…СЂР°РЅРµРЅРёСЏ
+ * РєРѕРЅРєСЂРµС‚РЅС‹С… С‚РµРіРѕРІ SVG-РґРѕРєСѓРјРµРЅС‚Р°
+ * Р РµР°Р»РёР·СѓРµС‚ РїР°С‚С‚РµСЂРЅ "РЁР°Р±Р»РѕРЅРЅС‹Р№ РјРµС‚РѕРґ" РґР»СЏ РІС‹РІРѕРґР° СЃРѕРґРµСЂР¶РёРјРѕРіРѕ С‚РµРіР°
  */
 class Object {
 public:
@@ -174,88 +174,88 @@ private:
 };
 
 /*
- * Класс Circle моделирует элемент <circle> для отображения круга
+ * РљР»Р°СЃСЃ Circle РјРѕРґРµР»РёСЂСѓРµС‚ СЌР»РµРјРµРЅС‚ <circle> РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РєСЂСѓРіР°
  * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
  */
 class Circle final : public Object, public PathProps<Circle> {
 public:
-    // Задает координаты центра круга
+    // Р—Р°РґР°РµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР° РєСЂСѓРіР°
     Circle& SetCenter(Point center);
-    // Задает радиус круга
+    // Р—Р°РґР°РµС‚ СЂР°РґРёСѓСЃ РєСЂСѓРіР°
     Circle& SetRadius(double radius);
 
 private:
-    // Рендер объекта
+    // Р РµРЅРґРµСЂ РѕР±СЉРµРєС‚Р°
     void RenderObject(const RenderContext& context) const override;
 
-    Point center_; // Координаты центра круга 
-    double radius_ = 1.0; // Радиус
+    Point center_; // РљРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР° РєСЂСѓРіР° 
+    double radius_ = 1.0; // Р Р°РґРёСѓСЃ
 };
 
 /*
- * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
+ * РљР»Р°СЃСЃ Polyline РјРѕРґРµР»РёСЂСѓРµС‚ СЌР»РµРјРµРЅС‚ <polyline> РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ Р»РѕРјР°РЅС‹С… Р»РёРЅРёР№
  * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
  */
 class Polyline final : public Object, public PathProps<Polyline> {
 public:
-    // Добавляет очередную вершину к ломаной линии
+    // Р”РѕР±Р°РІР»СЏРµС‚ РѕС‡РµСЂРµРґРЅСѓСЋ РІРµСЂС€РёРЅСѓ Рє Р»РѕРјР°РЅРѕР№ Р»РёРЅРёРё
     Polyline& AddPoint(Point point);
 
 private:
-    // Рендер объекта
+    // Р РµРЅРґРµСЂ РѕР±СЉРµРєС‚Р°
     void RenderObject(const RenderContext& context) const override;
 
     std::vector<Point> points_;
 };
 
 /*
- * Класс Text моделирует элемент <text> для отображения текста
+ * РљР»Р°СЃСЃ Text РјРѕРґРµР»РёСЂСѓРµС‚ СЌР»РµРјРµРЅС‚ <text> РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‚РµРєСЃС‚Р°
  * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
  */
 class Text final : public Object, public PathProps<Text> {
 public:
-    // Задаёт координаты опорной точки (атрибуты x и y)
+    // Р—Р°РґР°С‘С‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ РѕРїРѕСЂРЅРѕР№ С‚РѕС‡РєРё (Р°С‚СЂРёР±СѓС‚С‹ x Рё y) 
     Text& SetPosition(Point pos);
-    // Задаёт смещение относительно опорной точки (атрибуты dx, dy)
+    // Р—Р°РґР°С‘С‚ СЃРјРµС‰РµРЅРёРµ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РѕРїРѕСЂРЅРѕР№ С‚РѕС‡РєРё (Р°С‚СЂРёР±СѓС‚С‹ dx, dy) 
     Text& SetOffset(Point offset);
-    // Задаёт размеры шрифта (атрибут font-size)
+    // Р—Р°РґР°С‘С‚ СЂР°Р·РјРµСЂС‹ С€СЂРёС„С‚Р° (Р°С‚СЂРёР±СѓС‚ font-size)
     Text& SetFontSize(uint32_t size);
-    // Задаёт название шрифта (атрибут font-family)
+    // Р—Р°РґР°С‘С‚ РЅР°Р·РІР°РЅРёРµ С€СЂРёС„С‚Р° (Р°С‚СЂРёР±СѓС‚ font-family) 
     Text& SetFontFamily(const std::string& font_family);
-    // Задаёт толщину шрифта (атрибут font-weight)
+    // Р—Р°РґР°С‘С‚ С‚РѕР»С‰РёРЅСѓ С€СЂРёС„С‚Р° (Р°С‚СЂРёР±СѓС‚ font-weight)
     Text& SetFontWeight(const std::string& font_weight);
-    // Задаёт текстовое содержимое объекта (отображается внутри тега text)
+    // Р—Р°РґР°С‘С‚ С‚РµРєСЃС‚РѕРІРѕРµ СЃРѕРґРµСЂР¶РёРјРѕРµ РѕР±СЉРµРєС‚Р° (РѕС‚РѕР±СЂР°Р¶Р°РµС‚СЃСЏ РІРЅСѓС‚СЂРё С‚РµРіР° text)
     Text& SetData(const std::string& data);
 
 private:
-    // Информация о шрифте
+    // РРЅС„РѕСЂРјР°С†РёСЏ Рѕ С€СЂРёС„С‚Рµ
     struct Font {
-        uint32_t size = 1; // Размер шрифта
-        std::optional<std::string> font_family; // Название шрифта
-        std::optional<std::string> font_weight; // Толщина шрифта
+        uint32_t size = 1; // Р Р°Р·РјРµСЂ С€СЂРёС„С‚Р°
+        std::optional<std::string> font_family; // РќР°Р·РІР°РЅРёРµ С€СЂРёС„С‚Р°
+        std::optional<std::string> font_weight; // РўРѕР»С‰РёРЅР° С€СЂРёС„С‚Р°
     };
 
-    Point position_; // Координаты опорной точки
-    Point offset_; // Смещение относительно опорной точки
-    Font font_; // Информация о шрифте
-    std::string data_; // Содержимое текста
+    Point position_; // РљРѕРѕСЂРґРёРЅР°С‚С‹ РѕРїРѕСЂРЅРѕР№ С‚РѕС‡РєРё
+    Point offset_; // РЎРјРµС‰РµРЅРёРµ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РѕРїРѕСЂРЅРѕР№ С‚РѕС‡РєРё
+    Font font_; // РРЅС„РѕСЂРјР°С†РёСЏ Рѕ С€СЂРёС„С‚Рµ
+    std::string data_; // РЎРѕРґРµСЂР¶РёРјРѕРµ С‚РµРєСЃС‚Р°
 
-    // Рендер объекта
+    // Р РµРЅРґРµСЂ РѕР±СЉРµРєС‚Р°
     void RenderObject(const RenderContext& context) const override;
 
-    // Преобразует символы с строки, подходящие для SVG
+    // РџСЂРµРѕР±СЂР°Р·СѓРµС‚ СЃРёРјРІРѕР»С‹ СЃ СЃС‚СЂРѕРєРё, РїРѕРґС…РѕРґСЏС‰РёРµ РґР»СЏ SVG
     std::string ConvertText(const std::string& text) const;
 };
 
 class ObjectContainer {
 public:
-    // Добавляет в svg-контейнер любой объект-наследник svg::Object
+    // Р”РѕР±Р°РІР»СЏРµС‚ РІ svg-РєРѕРЅС‚РµР№РЅРµСЂ Р»СЋР±РѕР№ РѕР±СЉРµРєС‚-РЅР°СЃР»РµРґРЅРёРє svg::Object
     template <typename T>
     void Add(T obj) {
         AddPtr(std::make_unique<T>(std::move(obj)));
     }
 
-    // Добавляет в svg-документ объект-наследник svg::Object
+    // Р”РѕР±Р°РІР»СЏРµС‚ РІ svg-РґРѕРєСѓРјРµРЅС‚ РѕР±СЉРµРєС‚-РЅР°СЃР»РµРґРЅРёРє svg::Object
     virtual void AddPtr(std::unique_ptr<Object>&& ptr) = 0;
 
     virtual ~ObjectContainer() = default;
@@ -263,10 +263,10 @@ public:
 
 class Document : public ObjectContainer {
 public:
-    // Добавляет в svg-документ объект-наследник svg::Object
+    // Р”РѕР±Р°РІР»СЏРµС‚ РІ svg-РґРѕРєСѓРјРµРЅС‚ РѕР±СЉРµРєС‚-РЅР°СЃР»РµРґРЅРёРє svg::Object
     void AddPtr(std::unique_ptr<Object>&& obj) override;
 
-    // Выводит в ostream svg-представление документа
+    // Р’С‹РІРѕРґРёС‚ РІ ostream svg-РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґРѕРєСѓРјРµРЅС‚Р°
     void Render(std::ostream& out) const;
 
 private:

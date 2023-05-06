@@ -7,14 +7,14 @@
 using namespace std;
 
 int main() {
-	// Объявляем транспортный справочник
+	// РћР±СЉСЏРІР»СЏРµРј С‚СЂР°РЅСЃРїРѕСЂС‚РЅС‹Р№ СЃРїСЂР°РІРѕС‡РЅРёРє
 	transport_catalogue::TransportCatalogue catalogue;
-	// Объявляем рендерер карты справочника
-	MapRenderer renderer(catalogue);
-	// Объявляем читалку json-файла и поток ввода
+	// РћР±СЉСЏРІР»СЏРµРј СЂРµРЅРґРµСЂРµСЂ РєР°СЂС‚С‹ СЃРїСЂР°РІРѕС‡РЅРёРєР°
+	renderer::MapRenderer renderer(catalogue);
+	// РћР±СЉСЏРІР»СЏРµРј С‡РёС‚Р°Р»РєСѓ json-С„Р°Р№Р»Р° Рё РїРѕС‚РѕРє РІРІРѕРґР°
 	json_reader::JsonIOHandler json_reader(catalogue, renderer, cin);
 
-	// Выводим результат в поток cout
+	// Р’С‹РІРѕРґРёРј СЂРµР·СѓР»СЊС‚Р°С‚ РІ РїРѕС‚РѕРє cout
 	PrintJsonResultDocument(json_reader, cout);
 	
 	return 0;

@@ -2,7 +2,9 @@
 
 using namespace std;
 
-// Проецирует широту и долготу в координаты внутри SVG-изображения
+namespace renderer {
+
+// РџСЂРѕРµС†РёСЂСѓРµС‚ С€РёСЂРѕС‚Сѓ Рё РґРѕР»РіРѕС‚Сѓ РІ РєРѕРѕСЂРґРёРЅР°С‚С‹ РІРЅСѓС‚СЂРё SVG-РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 svg::Point SphereProjector::operator()(geo::Coordinates coords) const {
     return {
         (coords.lng - min_lon_) * zoom_coeff_ + padding_,
@@ -13,41 +15,41 @@ svg::Point SphereProjector::operator()(geo::Coordinates coords) const {
 MapRenderer::MapRenderer(const transport_catalogue::TransportCatalogue& catalogue)
     : catalogue_(catalogue) {}
 
-// Задает настройки визуализации
+// Р—Р°РґР°РµС‚ РЅР°СЃС‚СЂРѕР№РєРё РІРёР·СѓР°Р»РёР·Р°С†РёРё
 void MapRenderer::SetRenderSettings(const MapVisualisationSettings& settings) {
     settings_ = settings;
 }
 
-// Рендер карты транспортного справочника
+// Р РµРЅРґРµСЂ РєР°СЂС‚С‹ С‚СЂР°РЅСЃРїРѕСЂС‚РЅРѕРіРѕ СЃРїСЂР°РІРѕС‡РЅРёРєР°
 void MapRenderer::Rend(ostream& os) {
-    // Создадим множество координат остановок
+    // РЎРѕР·РґР°РґРёРј РјРЅРѕР¶РµСЃС‚РІРѕ РєРѕРѕСЂРґРёРЅР°С‚ РѕСЃС‚Р°РЅРѕРІРѕРє
     set<geo::Coordinates> stops_corrdinates;
     
-    // Итерируемся по остановкам, создаем множество уникальных координат
+    // РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РѕСЃС‚Р°РЅРѕРІРєР°Рј, СЃРѕР·РґР°РµРј РјРЅРѕР¶РµСЃС‚РІРѕ СѓРЅРёРєР°Р»СЊРЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚
     for (const auto& stop : catalogue_.GetStops()) {
-        // Если через остановку не проходит ни одни маршрут - игнорируем её
+        // Р•СЃР»Рё С‡РµСЂРµР· РѕСЃС‚Р°РЅРѕРІРєСѓ РЅРµ РїСЂРѕС…РѕРґРёС‚ РЅРё РѕРґРЅРё РјР°СЂС€СЂСѓС‚ - РёРіРЅРѕСЂРёСЂСѓРµРј РµС‘
         if (!catalogue_.GetStopsToRoutes().at(stop.name).empty()) {
             stops_corrdinates.insert({ stop.latitude, stop.longitude });
         }
     }
 
-    // Задаем объект, приводящий к экранной системе координат
+    // Р—Р°РґР°РµРј РѕР±СЉРµРєС‚, РїСЂРёРІРѕРґСЏС‰РёР№ Рє СЌРєСЂР°РЅРЅРѕР№ СЃРёСЃС‚РµРјРµ РєРѕРѕСЂРґРёРЅР°С‚
     const SphereProjector projector{ stops_corrdinates.begin(), stops_corrdinates.end(),
             settings_.width, settings_.height, settings_.padding };
         
-    // Добавляем линии и названия маршрутов
+    // Р”РѕР±Р°РІР»СЏРµРј Р»РёРЅРёРё Рё РЅР°Р·РІР°РЅРёСЏ РјР°СЂС€СЂСѓС‚РѕРІ
     RenderRoutes(projector);
-    // Добавляем отметки остановок
+    // Р”РѕР±Р°РІР»СЏРµРј РѕС‚РјРµС‚РєРё РѕСЃС‚Р°РЅРѕРІРѕРє
     RenderStops(projector);
 
     Print(os);
 }
 
-// Выводит итоговый svg-документа в указанный поток
+// Р’С‹РІРѕРґРёС‚ РёС‚РѕРіРѕРІС‹Р№ svg-РґРѕРєСѓРјРµРЅС‚Р° РІ СѓРєР°Р·Р°РЅРЅС‹Р№ РїРѕС‚РѕРє
 void MapRenderer::Print(std::ostream& os) {
-    svg::Document data; // Итоговый svg-документ
+    svg::Document data; // РС‚РѕРіРѕРІС‹Р№ svg-РґРѕРєСѓРјРµРЅС‚
 
-    // Добавляем все имеющиеся данные для рендера в итоговый svg-документ
+    // Р”РѕР±Р°РІР»СЏРµРј РІСЃРµ РёРјРµСЋС‰РёРµСЃСЏ РґР°РЅРЅС‹Рµ РґР»СЏ СЂРµРЅРґРµСЂР° РІ РёС‚РѕРіРѕРІС‹Р№ svg-РґРѕРєСѓРјРµРЅС‚
     for (const auto& route_polyline : routes_polylines_) {
         data.Add(route_polyline);
     }
@@ -61,11 +63,11 @@ void MapRenderer::Print(std::ostream& os) {
         data.Add(stops_name);
     }
 
-    // Выводим svg-документ в поток вывода
+    // Р’С‹РІРѕРґРёРј svg-РґРѕРєСѓРјРµРЅС‚ РІ РїРѕС‚РѕРє РІС‹РІРѕРґР°
     data.Render(os);
 }
 
-// Конвертирует вектор координат в вектор пикселей
+// РљРѕРЅРІРµСЂС‚РёСЂСѓРµС‚ РІРµРєС‚РѕСЂ РєРѕРѕСЂРґРёРЅР°С‚ РІ РІРµРєС‚РѕСЂ РїРёРєСЃРµР»РµР№
 vector<svg::Point> MapRenderer::ConvertToPixels(const vector<transport_catalogue::Stop*>& stops,
     const SphereProjector& projector) const {
     vector<svg::Point> output;
@@ -76,7 +78,7 @@ vector<svg::Point> MapRenderer::ConvertToPixels(const vector<transport_catalogue
 
     return output;
 }
-// Конвертирует вектор географических координат в вектор пикселей
+// РљРѕРЅРІРµСЂС‚РёСЂСѓРµС‚ РІРµРєС‚РѕСЂ РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚ РІ РІРµРєС‚РѕСЂ РїРёРєСЃРµР»РµР№
 std::vector<svg::Point> MapRenderer::ConvertToPixels(const set<geo::Coordinates>& stops,
     const SphereProjector& projector) const {
     vector<svg::Point> output;
@@ -88,78 +90,78 @@ std::vector<svg::Point> MapRenderer::ConvertToPixels(const set<geo::Coordinates>
     return output;
 }
 
-// Рендер маршрутов
+// Р РµРЅРґРµСЂ РјР°СЂС€СЂСѓС‚РѕРІ
 void MapRenderer::RenderRoutes(const SphereProjector& projector) {
-    // Создаем сортированный словарь маршрутов
+    // РЎРѕР·РґР°РµРј СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ СЃР»РѕРІР°СЂСЊ РјР°СЂС€СЂСѓС‚РѕРІ
     map<string_view, transport_catalogue::Route*> sorted_routes;
     for (const auto& [route_name, route_info] : catalogue_.GetRoutesMap()) {
         sorted_routes.insert({ route_name, route_info });
     }
 
-    // Итерируемся по маршрутам
+    // РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РјР°СЂС€СЂСѓС‚Р°Рј
     for (const auto& [route_name, route_info] : sorted_routes) {
-        // Если координаты отсутствуют - пропускаем итерацию
+        // Р•СЃР»Рё РєРѕРѕСЂРґРёРЅР°С‚С‹ РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚ - РїСЂРѕРїСѓСЃРєР°РµРј РёС‚РµСЂР°С†РёСЋ
         if (route_info->stops.empty()) {
             continue;
         }
 
         vector<svg::Point> stops = ConvertToPixels(route_info->stops, projector);
-        // Добавляем полилинию маршрута в вектор полилиний
+        // Р”РѕР±Р°РІР»СЏРµРј РїРѕР»РёР»РёРЅРёСЋ РјР°СЂС€СЂСѓС‚Р° РІ РІРµРєС‚РѕСЂ РїРѕР»РёР»РёРЅРёР№
         AddRoutesPolylines(stops);
 
-        vector<svg::Point> stops_screen_coordinates; // Вектор экранных координат маршрута
+        vector<svg::Point> stops_screen_coordinates; // Р’РµРєС‚РѕСЂ СЌРєСЂР°РЅРЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚ РјР°СЂС€СЂСѓС‚Р°
 
-        // Итерируемся по остановкам, сразу конвертируем и заполянем вектор координат
+        // РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ РѕСЃС‚Р°РЅРѕРІРєР°Рј, СЃСЂР°Р·Сѓ РєРѕРЅРІРµСЂС‚РёСЂСѓРµРј Рё Р·Р°РїРѕР»СЏРЅРµРј РІРµРєС‚РѕСЂ РєРѕРѕСЂРґРёРЅР°С‚
         for (const auto& stop : route_info->stops) {
             stops_screen_coordinates.push_back(projector({ stop->latitude, stop->longitude }));
         }
 
-        // Добавляем название маршрута
+        // Р”РѕР±Р°РІР»СЏРµРј РЅР°Р·РІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°
         AddRouteName(route_name, stops_screen_coordinates.front());
-        // Если маршрут не круговой - добавляем наименование маршрута на финальную остановку
+        // Р•СЃР»Рё РјР°СЂС€СЂСѓС‚ РЅРµ РєСЂСѓРіРѕРІРѕР№ - РґРѕР±Р°РІР»СЏРµРј РЅР°РёРјРµРЅРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р° РЅР° С„РёРЅР°Р»СЊРЅСѓСЋ РѕСЃС‚Р°РЅРѕРІРєСѓ
         if (!route_info->is_round) {
             if (FindSecondEndingStation(stops_screen_coordinates)) {
                 AddRouteName(route_name, FindSecondEndingStation(stops_screen_coordinates).value());
             }
         }
 
-        // Обновляем счетчик палитры
+        // РћР±РЅРѕРІР»СЏРµРј СЃС‡РµС‚С‡РёРє РїР°Р»РёС‚СЂС‹
         ++current_palit_pos_;
-        // Если счетчик палтиры стал >= размеру палитры, обнуляе счетчик
+        // Р•СЃР»Рё СЃС‡РµС‚С‡РёРє РїР°Р»С‚РёСЂС‹ СЃС‚Р°Р» >= СЂР°Р·РјРµСЂСѓ РїР°Р»РёС‚СЂС‹, РѕР±РЅСѓР»СЏРµРј СЃС‡РµС‚С‡РёРє
         if (current_palit_pos_ >= settings_.color_palette.size()) {
             current_palit_pos_ = 0;
         }
     }
 }
-// Рендер остановок
+// Р РµРЅРґРµСЂ РѕСЃС‚Р°РЅРѕРІРѕРє
 void MapRenderer::RenderStops(const SphereProjector& projector) {
-    // Создаем сортированный словарь маршрутов
+    // РЎРѕР·РґР°РµРј СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ СЃР»РѕРІР°СЂСЊ РјР°СЂС€СЂСѓС‚РѕРІ
     std::map<std::string_view, transport_catalogue::Stop*> sorted_stops;
     for (const auto& [stop_name, stop_info] : catalogue_.GetStopsMap()) {
         sorted_stops.insert({ stop_name, stop_info });
     }
 
     for (const auto& [stop_name, stop_info] : sorted_stops) {
-        // Если через остановку не проходит ни один маршрут - пропускаем итерацию
+        // Р•СЃР»Рё С‡РµСЂРµР· РѕСЃС‚Р°РЅРѕРІРєСѓ РЅРµ РїСЂРѕС…РѕРґРёС‚ РЅРё РѕРґРёРЅ РјР°СЂС€СЂСѓС‚ - РїСЂРѕРїСѓСЃРєР°РµРј РёС‚РµСЂР°С†РёСЋ
         if (catalogue_.GetStopsToRoutes().find(stop_name)->second.empty()) {
             continue;
         }
 
-        // Добавляем метку остановки
+        // Р”РѕР±Р°РІР»СЏРµРј РјРµС‚РєСѓ РѕСЃС‚Р°РЅРѕРІРєРё
         svg::Circle circle;
         circle.SetCenter(projector({ stop_info->latitude, stop_info->longitude }))
             .SetRadius(settings_.stop_radius)
             .SetFillColor("white"s);
         stops_circles_.push_back(circle);
 
-        // Добавляем наименовние остановки
+        // Р”РѕР±Р°РІР»СЏРµРј РЅР°РёРјРµРЅРѕРІРЅРёРµ РѕСЃС‚Р°РЅРѕРІРєРё
         AddStopName(projector({ stop_info->latitude, stop_info->longitude }), stop_name);
     }
 }
 
-// Добавляет наименования автобусных остановок 
+// Р”РѕР±Р°РІР»СЏРµС‚ РЅР°РёРјРµРЅРѕРІР°РЅРёСЏ Р°РІС‚РѕР±СѓСЃРЅС‹С… РѕСЃС‚Р°РЅРѕРІРѕРє 
 void MapRenderer::AddStopName(const svg::Point& pos, string_view stop_name) {
-    svg::Text name; // Наименование маршрута
+    svg::Text name; // РќР°РёРјРµРЅРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°
 
     name.SetPosition(pos)
         .SetOffset({ settings_.stop_label_offset.first, settings_.stop_label_offset.second })
@@ -167,7 +169,7 @@ void MapRenderer::AddStopName(const svg::Point& pos, string_view stop_name) {
         .SetFontFamily("Verdana"s)
         .SetData(string{ stop_name });
 
-    svg::Text underlayer = name; // Подложка наименования маршрута
+    svg::Text underlayer = name; // РџРѕРґР»РѕР¶РєР° РЅР°РёРјРµРЅРѕРІР°РЅРёСЏ РјР°СЂС€СЂСѓС‚Р°
 
     underlayer.SetFillColor(settings_.underlayer_color)
         .SetStrokeColor(settings_.underlayer_color)
@@ -180,16 +182,16 @@ void MapRenderer::AddStopName(const svg::Point& pos, string_view stop_name) {
     stops_names_.push_back(underlayer);
     stops_names_.push_back(name);
 }
-// Добавляет полилинии маршрутов в routes_polylines_
+// Р”РѕР±Р°РІР»СЏРµС‚ РїРѕР»РёР»РёРЅРёРё РјР°СЂС€СЂСѓС‚РѕРІ РІ routes_polylines_
 void MapRenderer::AddRoutesPolylines(const vector<svg::Point>& coordinates) {
-    svg::Polyline polyline; // Полилиния маршрута
+    svg::Polyline polyline; // РџРѕР»РёР»РёРЅРёСЏ РјР°СЂС€СЂСѓС‚Р°
 
-    // Добавляем точки в полилинию маршрута
+    // Р”РѕР±Р°РІР»СЏРµРј С‚РѕС‡РєРё РІ РїРѕР»РёР»РёРЅРёСЋ РјР°СЂС€СЂСѓС‚Р°
     for (const auto& coordinate : coordinates) {
         polyline.AddPoint(coordinate);
     }
 
-    // Добавляем получившуюся полилинию в вектор полилиний маршрутов
+    // Р”РѕР±Р°РІР»СЏРµРј РїРѕР»СѓС‡РёРІС€СѓСЋСЃСЏ РїРѕР»РёР»РёРЅРёСЋ РІ РІРµРєС‚РѕСЂ РїРѕР»РёР»РёРЅРёР№ РјР°СЂС€СЂСѓС‚РѕРІ
     routes_polylines_.push_back(
         polyline.SetFillColor(svg::NoneColor)
         .SetStrokeColor(settings_.color_palette.at(current_palit_pos_))
@@ -198,9 +200,9 @@ void MapRenderer::AddRoutesPolylines(const vector<svg::Point>& coordinates) {
         .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND)
     );
 }
-// Добавляет наименования маршрутов с подложками в routes_names_
+// Р”РѕР±Р°РІР»СЏРµС‚ РЅР°РёРјРµРЅРѕРІР°РЅРёСЏ РјР°СЂС€СЂСѓС‚РѕРІ СЃ РїРѕРґР»РѕР¶РєР°РјРё РІ routes_names_
 void MapRenderer::AddRouteName(string_view route_name, svg::Point pos) {
-    svg::Text name; // Наименование маршрута
+    svg::Text name; // РќР°РёРјРµРЅРѕРІР°РЅРёРµ РјР°СЂС€СЂСѓС‚Р°
 
     name.SetPosition(pos)
         .SetOffset({ settings_.bus_label_offset.first, settings_.bus_label_offset.second })
@@ -209,7 +211,7 @@ void MapRenderer::AddRouteName(string_view route_name, svg::Point pos) {
         .SetFontWeight("bold"s)
         .SetData(string{ route_name });
 
-    svg::Text underlayer = name; // Подложка наименования маршрута
+    svg::Text underlayer = name; // РџРѕРґР»РѕР¶РєР° РЅР°РёРјРµРЅРѕРІР°РЅРёСЏ РјР°СЂС€СЂСѓС‚Р°
 
     underlayer.SetFillColor(settings_.underlayer_color)
         .SetStrokeColor(settings_.underlayer_color)
@@ -223,10 +225,10 @@ void MapRenderer::AddRouteName(string_view route_name, svg::Point pos) {
     routes_names_.push_back(name);
 }
 
-// Возвращает положение второй конечной остановки для некольцевых маршрутов
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РїРѕР»РѕР¶РµРЅРёРµ РІС‚РѕСЂРѕР№ РєРѕРЅРµС‡РЅРѕР№ РѕСЃС‚Р°РЅРѕРІРєРё РґР»СЏ РЅРµРєРѕР»СЊС†РµРІС‹С… РјР°СЂС€СЂСѓС‚РѕРІ
 std::optional<svg::Point> MapRenderer::FindSecondEndingStation(const vector<svg::Point>& route) const {
-    // Для некольцевых маршрутов, состоящих из 3-ех и более остановок,
-    // средняя конечная всегда будет равна: (Общее кол-во / 2)
+    // Р”Р»СЏ РЅРµРєРѕР»СЊС†РµРІС‹С… РјР°СЂС€СЂСѓС‚РѕРІ, СЃРѕСЃС‚РѕСЏС‰РёС… РёР· 3-РµС… Рё Р±РѕР»РµРµ РѕСЃС‚Р°РЅРѕРІРѕРє,
+    // СЃСЂРµРґРЅСЏСЏ РєРѕРЅРµС‡РЅР°СЏ РІСЃРµРіРґР° Р±СѓРґРµС‚ СЂР°РІРЅР°: (РћР±С‰РµРµ РєРѕР»-РІРѕ / 2)
     size_t pos = route.size() / 2;
     
     if (route.size() < 3 || route.at(pos) == route.front()) {
@@ -236,3 +238,5 @@ std::optional<svg::Point> MapRenderer::FindSecondEndingStation(const vector<svg:
     
     return route.at(pos);
 }
+
+} // namespace renderer

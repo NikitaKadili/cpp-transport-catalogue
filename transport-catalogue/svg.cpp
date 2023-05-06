@@ -24,12 +24,12 @@ void ColorPrinter::operator()(Rgba rgba) {
         << rgba.opacity << ')';
 }
 
-// Перегрузка оператора вывода для Color
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РґР»СЏ Color
 std::ostream& operator<<(std::ostream& os, const Color& color) {
     std::visit(ColorPrinter{ os }, color);
     return os;
 }
-// Перегрузка оператора вывода для StrokeLineCap
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РґР»СЏ StrokeLineCap
 std::ostream& operator<<(std::ostream& os, StrokeLineCap line_cap) {
     switch (line_cap) {
     case StrokeLineCap::BUTT:
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, StrokeLineCap line_cap) {
 
     return os;
 }
-// Перегрузка оператора вывода для StrokeLineJoin
+// РџРµСЂРµРіСЂСѓР·РєР° РѕРїРµСЂР°С‚РѕСЂР° РІС‹РІРѕРґР° РґР»СЏ StrokeLineJoin
 std::ostream& operator<<(std::ostream& os, StrokeLineJoin line_join) {
     switch (line_join) {
     case StrokeLineJoin::ARCS:
@@ -73,7 +73,7 @@ std::ostream& operator<<(std::ostream& os, StrokeLineJoin line_join) {
 void Object::Render(const RenderContext& context) const {
     context.RenderIndent();
 
-    // Делегируем вывод тега своим подклассам
+    // Р”РµР»РµРіРёСЂСѓРµРј РІС‹РІРѕРґ С‚РµРіР° СЃРІРѕРёРј РїРѕРґРєР»Р°СЃСЃР°Рј
     RenderObject(context);
 
     context.out << std::endl;
@@ -81,18 +81,18 @@ void Object::Render(const RenderContext& context) const {
 
 /* ---------- Circle  ---------- */
 
-// Задает координаты центра круга
+// Р—Р°РґР°РµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР° РєСЂСѓРіР°
 Circle& Circle::SetCenter(Point center) {
     center_ = center;
     return *this;
 }
-// Задает радиус круга
+// Р—Р°РґР°РµС‚ СЂР°РґРёСѓСЃ РєСЂСѓРіР°
 Circle& Circle::SetRadius(double radius) {
     radius_ = radius;
     return *this;
 }
 
-// Рендер объекта
+// Р РµРЅРґРµСЂ РѕР±СЉРµРєС‚Р°
 void Circle::RenderObject(const RenderContext& context) const {
     auto& out = context.out;
     out << "<circle cx=\""sv << center_.x << "\" cy=\""sv << center_.y << "\" "sv;
@@ -103,13 +103,13 @@ void Circle::RenderObject(const RenderContext& context) const {
 
 /* ---------- Polyline  ---------- */
 
-// Добавляет очередную вершину к ломаной линии
+// Р”РѕР±Р°РІР»СЏРµС‚ РѕС‡РµСЂРµРґРЅСѓСЋ РІРµСЂС€РёРЅСѓ Рє Р»РѕРјР°РЅРѕР№ Р»РёРЅРёРё
 Polyline& Polyline::AddPoint(Point point) {
     points_.emplace_back(point);
     return *this;
 }
 
-// Рендер объекта
+// Р РµРЅРґРµСЂ РѕР±СЉРµРєС‚Р°
 void Polyline::RenderObject(const RenderContext& context) const {
     auto& out = context.out;
     bool is_first = true;
@@ -129,38 +129,38 @@ void Polyline::RenderObject(const RenderContext& context) const {
 
 /* ---------- Text  ---------- */
 
-// Задаёт координаты опорной точки (атрибуты x и y)
+// Р—Р°РґР°С‘С‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ РѕРїРѕСЂРЅРѕР№ С‚РѕС‡РєРё (Р°С‚СЂРёР±СѓС‚С‹ x Рё y)
 Text& Text::SetPosition(Point pos) {
     position_ = pos;
     return *this;
 }
-// Задаёт смещение относительно опорной точки (атрибуты dx, dy)
+// Р—Р°РґР°С‘С‚ СЃРјРµС‰РµРЅРёРµ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РѕРїРѕСЂРЅРѕР№ С‚РѕС‡РєРё (Р°С‚СЂРёР±СѓС‚С‹ dx, dy)
 Text& Text::SetOffset(Point offset) {
     offset_ = offset;
     return *this;
 }
-// Задаёт размеры шрифта (атрибут font-size)
+// Р—Р°РґР°С‘С‚ СЂР°Р·РјРµСЂС‹ С€СЂРёС„С‚Р° (Р°С‚СЂРёР±СѓС‚ font-size)
 Text& Text::SetFontSize(uint32_t size) {
     font_.size = size;
     return *this;
 }
-// Задаёт название шрифта (атрибут font-family)
+// Р—Р°РґР°С‘С‚ РЅР°Р·РІР°РЅРёРµ С€СЂРёС„С‚Р° (Р°С‚СЂРёР±СѓС‚ font-family)
 Text& Text::SetFontFamily(const std::string& font_family) {
     font_.font_family = font_family;
     return *this;
 }
-// Задаёт толщину шрифта (атрибут font-weight)
+// Р—Р°РґР°С‘С‚ С‚РѕР»С‰РёРЅСѓ С€СЂРёС„С‚Р° (Р°С‚СЂРёР±СѓС‚ font-weight)
 Text& Text::SetFontWeight(const std::string& font_weight) {
     font_.font_weight = font_weight;
     return *this;
 }
-// Задаёт текстовое содержимое объекта (отображается внутри тега text)
+// Р—Р°РґР°С‘С‚ С‚РµРєСЃС‚РѕРІРѕРµ СЃРѕРґРµСЂР¶РёРјРѕРµ РѕР±СЉРµРєС‚Р° (РѕС‚РѕР±СЂР°Р¶Р°РµС‚СЃСЏ РІРЅСѓС‚СЂРё С‚РµРіР° text)
 Text& Text::SetData(const std::string& data) {
     data_ = data;
     return *this;
 }
 
-// Рендер объекта
+// Р РµРЅРґРµСЂ РѕР±СЉРµРєС‚Р°
 void Text::RenderObject(const RenderContext& context) const {
     auto& out = context.out;
     out << "<text "sv;
@@ -188,7 +188,7 @@ void Text::RenderObject(const RenderContext& context) const {
     out << "</text>"sv;
 }
 
-// Преобразует символы с строки, подходящие для SVG
+// РџСЂРµРѕР±СЂР°Р·СѓРµС‚ СЃРёРјРІРѕР»С‹ СЃ СЃС‚СЂРѕРєРё, РїРѕРґС…РѕРґСЏС‰РёРµ РґР»СЏ SVG
 std::string Text::ConvertText(const std::string& text) const {
     std::string output = "";
 
@@ -219,12 +219,12 @@ std::string Text::ConvertText(const std::string& text) const {
 
 /* ---------- Document  ---------- */
 
-// Добавляет в svg-документ объект-наследник svg::Object
+// Р”РѕР±Р°РІР»СЏРµС‚ РІ svg-РґРѕРєСѓРјРµРЅС‚ РѕР±СЉРµРєС‚-РЅР°СЃР»РµРґРЅРёРє svg::Object
 void Document::AddPtr(std::unique_ptr<Object>&& obj) {
     objects_.emplace_back(std::move(obj));
 }
 
-// Выводит в ostream svg-представление документа
+// Р’С‹РІРѕРґРёС‚ РІ ostream svg-РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґРѕРєСѓРјРµРЅС‚Р°
 void Document::Render(std::ostream& out) const {
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"sv;
     out << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n"sv;

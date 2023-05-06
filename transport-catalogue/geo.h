@@ -4,10 +4,10 @@
 
 namespace geo {
 
-// Структура географических координат
+// РЎС‚СЂСѓРєС‚СѓСЂР° РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚
 struct Coordinates {
-    double lat; // Широта
-    double lng; // Долгота
+    double lat; // РЁРёСЂРѕС‚Р°
+    double lng; // Р”РѕР»РіРѕС‚Р°
     bool operator==(const Coordinates& other) const {
         return lat == other.lat && lng == other.lng;
     }
@@ -19,7 +19,7 @@ struct Coordinates {
     }
 };
 
-// Возвращает расстояние между двумя географическими координатами
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ СЂР°СЃСЃС‚РѕСЏРЅРёРµ РјРµР¶РґСѓ РґРІСѓРјСЏ РіРµРѕРіСЂР°С„РёС‡РµСЃРєРёРјРё РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё
 double ComputeDistance(Coordinates from, Coordinates to);
 
 }  // namespace geo
