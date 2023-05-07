@@ -3,16 +3,17 @@
 #include "json.h"
 #include "svg.h"
 #include "transport_catalogue.h"
+#include "domain.h"
 #include "map_renderer.h"
 
 #include <iostream>
 
-namespace json_reader {
+namespace transport_catalogue {
 
 class JsonIOHandler final {
 public:
 	JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
-		renderer::MapRenderer& renderer, std::istream& is);
+		transport_catalogue::MapRenderer& renderer, std::istream& is);
 
 	// Запуск обработчика запросов, переданных в формате json в поток input_stream_
 	// Возвращает json-документ результатов запроса
@@ -22,7 +23,7 @@ private:
 	// Ссылка на транспортный справочник
 	transport_catalogue::TransportCatalogue& catalogue_;
 	// Ссылка на MapRenderer
-	renderer::MapRenderer& renderer_;
+	transport_catalogue::MapRenderer& renderer_;
 
 	std::istream& input_stream_; // Поток ввода запросов
 
@@ -50,4 +51,4 @@ private:
 	[[nodiscard]] svg::Color GetColor(const json::Node& color_node) const;
 };
 
-} // namespace json_reader
+} // namespace transport_catalogue

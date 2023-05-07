@@ -7,13 +7,14 @@
 
 namespace json {
 
-class KeyItemContext;
-class ValueItemContext;
-class DictItemContext;
-class ArrayItemContext;
-
 class Builder {
 public:
+    class ItemContext;
+    class KeyItemContext;
+    class ValueItemContext;
+    class DictItemContext;
+    class ArrayItemContext;
+
     Builder();
 
     // Вносит значение в крайний недостроенный узел
@@ -28,9 +29,8 @@ public:
     DictItemContext StartDict();
     // Завершает построение словаря
     Builder& EndDict();
-    // Строит пару словаря [ключ, Node]
+    // Начинает построение пары словаря [ключ, Node]
     KeyItemContext Key(const std::string& key);
-
 
     // Возвращает результирующий узел
     Node Build();
@@ -38,13 +38,17 @@ public:
 private:
     Node root_; // Конструируемый объект
     std::vector<Node*> nodes_stack_; // Контейнер крайних недостроенных узлов
+
+    // В зависимости от передаваемых параметров вносит значение Value,
+    // начинает построение словаря или массива в Builder
+    Builder& AddItem(Node node, bool is_insertation_required = false);
 };
 
 /*
  * Классы, помогающие выявить часть ошибок еще на этапе компиляции
  */
 
-class ItemContext : public Builder {
+class Builder::ItemContext : public Builder {
 public:
     ItemContext(Builder& builder) : builder_(builder) {}
 
@@ -60,7 +64,7 @@ private:
     Builder& builder_;
 };
 
-class KeyItemContext : public ItemContext {
+class Builder::KeyItemContext : public ItemContext {
 public:
     KeyItemContext(Builder& builder) : ItemContext(builder) {}
 
@@ -69,7 +73,7 @@ public:
     Builder& EndDict() = delete;
     KeyItemContext Key(const std::string& key) = delete;
 };
-class ValueItemContext : public ItemContext {
+class Builder::ValueItemContext : public ItemContext {
 public:
     ValueItemContext(Builder& builder) : ItemContext(builder) {}
 
@@ -78,7 +82,7 @@ public:
     Builder& EndArray() = delete;
     DictItemContext StartDict() = delete;
 };
-class DictItemContext : public ItemContext {
+class Builder::DictItemContext : public ItemContext {
 public:
     DictItemContext(Builder& builder) : ItemContext(builder) {}
 
@@ -87,7 +91,7 @@ public:
     Builder& EndArray() = delete;
     DictItemContext StartDict() = delete;
 };
-class ArrayItemContext : public ItemContext {
+class Builder::ArrayItemContext : public ItemContext {
 public:
     ArrayItemContext(Builder& builder) : ItemContext(builder) {}
 

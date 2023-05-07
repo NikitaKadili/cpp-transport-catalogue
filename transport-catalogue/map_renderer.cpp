@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace renderer {
+namespace transport_catalogue {
 
 // Проецирует широту и долготу в координаты внутри SVG-изображения
 svg::Point SphereProjector::operator()(geo::Coordinates coords) const {
@@ -68,7 +68,7 @@ void MapRenderer::Print(std::ostream& os) {
 }
 
 // Конвертирует вектор координат в вектор пикселей
-vector<svg::Point> MapRenderer::ConvertToPixels(const vector<transport_catalogue::Stop*>& stops,
+vector<svg::Point> MapRenderer::ConvertToPixels(const vector<transport_catalogue::domain::Stop*>& stops,
     const SphereProjector& projector) const {
     vector<svg::Point> output;
 
@@ -93,7 +93,7 @@ std::vector<svg::Point> MapRenderer::ConvertToPixels(const set<geo::Coordinates>
 // Рендер маршрутов
 void MapRenderer::RenderRoutes(const SphereProjector& projector) {
     // Создаем сортированный словарь маршрутов
-    map<string_view, transport_catalogue::Route*> sorted_routes;
+    map<string_view, transport_catalogue::domain::Route*> sorted_routes;
     for (const auto& [route_name, route_info] : catalogue_.GetRoutesMap()) {
         sorted_routes.insert({ route_name, route_info });
     }
@@ -136,7 +136,7 @@ void MapRenderer::RenderRoutes(const SphereProjector& projector) {
 // Рендер остановок
 void MapRenderer::RenderStops(const SphereProjector& projector) {
     // Создаем сортированный словарь маршрутов
-    std::map<std::string_view, transport_catalogue::Stop*> sorted_stops;
+    std::map<std::string_view, transport_catalogue::domain::Stop*> sorted_stops;
     for (const auto& [stop_name, stop_info] : catalogue_.GetStopsMap()) {
         sorted_stops.insert({ stop_name, stop_info });
     }
@@ -239,4 +239,4 @@ std::optional<svg::Point> MapRenderer::FindSecondEndingStation(const vector<svg:
     return route.at(pos);
 }
 
-} // namespace renderer
+} // namespace transport_catalogue

@@ -7,12 +7,12 @@
 #include <string_view>
 #include <vector>
 
-namespace json_reader {
+namespace transport_catalogue {
 
 using namespace std;
 
 JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
-	renderer::MapRenderer& renderer, std::istream& is)
+	transport_catalogue::MapRenderer& renderer, std::istream& is)
 	: catalogue_(catalogue)
 	, renderer_(renderer)
 	, input_stream_(is) {}
@@ -116,7 +116,7 @@ void JsonIOHandler::AddStop(const json::Dict& request_map) {
 }
 // Вносит в справочник информацию о маршруте из запроса
 void JsonIOHandler::AddRoute(const json::Dict& request_map) {
-	vector<transport_catalogue::Stop*> stops;
+	vector<transport_catalogue::domain::Stop*> stops;
 
 	// Если отсутствует массив остановок - выбрасываем исключение invalid_argument
 	if (request_map.find("stops") == request_map.end()) {
@@ -141,7 +141,7 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 	// Итерируемся по остановкам, добавляем их в контейнер
 	for (const json::Node& station : request_map.at("stops"s).AsArray()) {
 		stops.push_back(
-			const_cast<transport_catalogue::Stop*>(catalogue_.FindStop(station.AsString()))
+			const_cast<transport_catalogue::domain::Stop*>(catalogue_.FindStop(station.AsString()))
 		);
 	}
 
@@ -232,7 +232,7 @@ json::Node JsonIOHandler::FindStop(const json::Dict& request_map) const {
 }
 // Возвращает json-узел с данными по маршруту
 json::Node JsonIOHandler::FindRoute(const json::Dict& request_map) const {
-	std::optional<transport_catalogue::RouteInfo> route_info =
+	std::optional<transport_catalogue::domain::RouteInfo> route_info =
 		catalogue_.GetRouteInfo(request_map.at("name"s).AsString());
 
 	// Если такой маршрут не был добавлен - возвращаем шаблонный ответ
@@ -296,7 +296,7 @@ void JsonIOHandler::ProcessVisualisationSettings(const json::Node& settings) {
 	}
 
 	// Передаем в структуру значения из запроса
-	renderer::MapVisualisationSettings settings_struct{
+	transport_catalogue::MapVisualisationSettings settings_struct{
 		settings.AsDict().at("width").AsDouble(),
 		settings.AsDict().at("height").AsDouble(),
 
@@ -355,4 +355,4 @@ void JsonIOHandler::ProcessVisualisationSettings(const json::Node& settings) {
 	}
 }
 
-} // namespace json_reader
+} // namespace transport_catalogue

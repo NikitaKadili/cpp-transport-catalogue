@@ -2,6 +2,7 @@
 
 #include "svg.h"
 #include "transport_catalogue.h"
+#include "domain.h"
 #include "geo.h"
 
 #include <algorithm>
@@ -15,7 +16,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace renderer {
+namespace transport_catalogue {
 
 class SphereProjector;
 
@@ -66,7 +67,7 @@ private:
     void Print(std::ostream& os);
 
     // Конвертирует вектор остановок в вектор пикселей
-    std::vector<svg::Point> ConvertToPixels(const std::vector<transport_catalogue::Stop*>& stops,
+    std::vector<svg::Point> ConvertToPixels(const std::vector<transport_catalogue::domain::Stop*>& stops,
         const SphereProjector& projector) const;
     // Конвертирует множество географических координат в вектор пикселей
     std::vector<svg::Point> ConvertToPixels(const std::set<geo::Coordinates>& stops,
@@ -165,4 +166,4 @@ SphereProjector::SphereProjector(PointInputIt points_begin, PointInputIt points_
     }
 }
 
-} // namespace renderer
+} // namespace transport_catalogue

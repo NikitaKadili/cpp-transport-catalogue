@@ -2,16 +2,16 @@
 
 // Добавляет остановку в транспортный справочник
 void AddStopToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
-	transport_catalogue::Stop&& stop) {
-	catalogue.AddStop(std::move(stop));
+	const transport_catalogue::domain::Stop& stop) {
+	catalogue.AddStop(stop);
 }
 // Добавляет маршрут в транспортный справочник
 void AddRouteToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
-	transport_catalogue::Route&& route) {
-	catalogue.AddRoute(std::move(route));
+	const transport_catalogue::domain::Route& route) {
+	catalogue.AddRoute(route);
 }
 
 // Выводит json-документ с результатами запросов в out_stream
-void PrintJsonResultDocument(json_reader::JsonIOHandler& json_io, std::ostream& os) {
+void PrintJsonResultDocument(transport_catalogue::JsonIOHandler& json_io, std::ostream& os) {
 	json::Print(json_io.ProcessRequests(), os);
 }

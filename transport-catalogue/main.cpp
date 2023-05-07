@@ -10,9 +10,9 @@ int main() {
 	// Объявляем транспортный справочник
 	transport_catalogue::TransportCatalogue catalogue;
 	// Объявляем рендерер карты справочника
-	renderer::MapRenderer renderer(catalogue);
+	transport_catalogue::MapRenderer renderer(catalogue);
 	// Объявляем читалку json-файла и поток ввода
-	json_reader::JsonIOHandler json_reader(catalogue, renderer, cin);
+	transport_catalogue::JsonIOHandler json_reader(catalogue, renderer, cin);
 
 	// Выводим результат в поток cout
 	PrintJsonResultDocument(json_reader, cout);
