@@ -7,7 +7,9 @@ using namespace std;
 
 namespace transport_catalogue {
 
-// Добавление остановки в базу
+/**
+ * Добавление остановки в базу
+*/
 void TransportCatalogue::AddStop(const domain::Stop& stop) {
 	// Находим указатель на остановку, если она была добавлена ранее
 	domain::Stop* ptr = GetStopPtr(stop.name);
@@ -24,8 +26,9 @@ void TransportCatalogue::AddStop(const domain::Stop& stop) {
 	stops_to_structs_[ptr->name] = ptr;
 	stops_to_routes_[ptr->name] = {};
 }
-
-// Добавление фактического расстояния между остановками
+/**
+ * Добавление фактического расстояния между остановками
+*/
 void TransportCatalogue::AddActualDistance(string_view from, string_view to, double distance) {
 	// Запрашиваем указатели на остановки from и to
 	domain::Stop* from_ptr = GetStopPtr(from);
@@ -50,8 +53,9 @@ void TransportCatalogue::AddActualDistance(string_view from, string_view to, dou
 		stops_pairs_to_distances_[{ to_ptr, from_ptr }] = distance;
 	}
 }
-
-// Добавление маршрута в базу
+/**
+ * Добавление маршрута в базу
+*/
 void TransportCatalogue::AddRoute(const domain::Route& route) {
 	// Подсчет количества уникальных остановок и дистанции маршрута
 	unordered_set<domain::Stop*> unique_stops;
@@ -83,7 +87,9 @@ void TransportCatalogue::AddRoute(const domain::Route& route) {
 		= { route.stops.size(), unique_stops.size(), geo_distance, fact_distance };
 }
 
-// Поиск остановки по имени, возвращает константный указатель на остановку
+/**
+ * Поиск остановки по имени, возвращает константный указатель на остановку
+*/
 const domain::Stop* TransportCatalogue::FindStop(string_view name) const {
 	auto it = stops_to_structs_.find(name);
 	if (it != stops_to_structs_.end()) {
@@ -92,8 +98,9 @@ const domain::Stop* TransportCatalogue::FindStop(string_view name) const {
 
 	return nullptr;
 }
-
-// Поиск маршрута по имени, возвращает константный указатель на машрут
+/**
+ * Поиск маршрута по имени, возвращает константный указатель на машрут
+*/
 const domain::Route* TransportCatalogue::FindRoute(string_view number) const {
 	auto it = routes_to_structs_.find(number);
 	if (it != routes_to_structs_.end()) {
@@ -103,7 +110,9 @@ const domain::Route* TransportCatalogue::FindRoute(string_view number) const {
 	return nullptr;
 }
 
-// Получение основной информации о маршруте
+/**
+ * Получение основной информации о маршруте
+*/
 optional<domain::RouteInfo> TransportCatalogue::GetRouteInfo(string_view number) const {
 	auto it = routes_to_routes_info_.find(number);
 	if (it != routes_to_routes_info_.end()) {
@@ -112,8 +121,9 @@ optional<domain::RouteInfo> TransportCatalogue::GetRouteInfo(string_view number)
 
 	return nullopt;
 }
-
-// Получение информации о маршрутах, проходящих через остановку
+/**
+ * Получение информации о маршрутах, проходящих через остановку
+*/
 optional<set<string_view>> TransportCatalogue::GetRoutesOnStopInfo(string_view name) const {
 	auto it = stops_to_routes_.find(name);
 	if (it != stops_to_routes_.end()) {
@@ -123,27 +133,46 @@ optional<set<string_view>> TransportCatalogue::GetRoutesOnStopInfo(string_view n
 	return nullopt;
 }
 
-// Возвращает ссылку на словарь всех маршрутов
+/**
+ * Возвращает константную ссылку на словарь всех маршрутов
+*/
 const unordered_map<string_view, domain::Route*>& TransportCatalogue::GetRoutesMap() const {
 	return routes_to_structs_;
 }
-// Возвращает ссылку словарь всех остановок
+/**
+ * Возвращает константную ссылку на словарь всех остановок
+*/
 const std::unordered_map<std::string_view, domain::Stop*>& TransportCatalogue::GetStopsMap() const {
 	return stops_to_structs_;
 }
-// Возвращает ссылку на дэк всех остановок
+/**
+ * Возвращает константную ссылку на дэк всех остановок
+*/
 const deque<domain::Stop>& TransportCatalogue::GetStops() const {
 	return stops_;
 }
-// Возвращает ссылку на словарь, где:
-// ключ - наименование остановки;
-// значение - множество наименование маршрутов, проходящих через остановку
+/**
+ * Возвращает константную ссылку на словарь, где:
+ * ключ - наименование остановки;
+ * значение - множество наименование маршрутов, проходящих через остановку
+*/
 const unordered_map<string_view, set<std::string_view>>&
 TransportCatalogue::GetStopsToRoutes() const {
 	return stops_to_routes_;
 }
+/**
+ * Возвращает константную ссылку на словарь, где:
+ * ключ - пара смежных остановок;
+ * значение - расстояние между ними
+*/
+const unordered_map<pair<domain::Stop*, domain::Stop*>, double, TransportCatalogue::StopsPairHasher>&
+	TransportCatalogue::GetStopsToDistances() const {
+	return stops_pairs_to_distances_;
+}
 
-// Возвращает расстояние между координатами остановки from и to
+/**
+ * Возвращает расстояние между координатами остановки from и to
+*/
 double TransportCatalogue::CountDistanceBetweenStops(domain::Stop* from, domain::Stop* to) const {
 	return geo::ComputeDistance(
 		{ from->latitude, from->longitude },
@@ -151,14 +180,18 @@ double TransportCatalogue::CountDistanceBetweenStops(domain::Stop* from, domain:
 	);
 }
 
-// Хэш-функция для std::pair<Stop*, Stop*>
+/**
+ * Хэш-функция для std::pair<Stop*, Stop*>
+*/
 size_t TransportCatalogue::StopsPairHasher::operator()(const pair<domain::Stop*, 
 	domain::Stop*>& stops) const {
 	return reinterpret_cast<size_t>(stops.first) * 13
 		+ reinterpret_cast<size_t>(stops.second) * 13 * 13;
 }
 
-// Возвращает указатель на остановку
+/**
+ * Возвращает указатель на остановку
+*/
 domain::Stop* TransportCatalogue::GetStopPtr(string_view name) noexcept {
 	auto it = stops_to_structs_.find(name);
 	if (it != stops_to_structs_.end()) {
@@ -168,7 +201,9 @@ domain::Stop* TransportCatalogue::GetStopPtr(string_view name) noexcept {
 	return nullptr;
 }
 
-// Возвращает указатель на машрут
+/**
+ * Возвращает указатель на машрут
+*/
 domain::Route* TransportCatalogue::GetRoutePtr(string_view number) noexcept {
 	auto it = routes_to_structs_.find(number);
 	if (it != routes_to_structs_.end()) {

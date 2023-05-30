@@ -3,6 +3,7 @@
 #include "json.h"
 #include "svg.h"
 #include "transport_catalogue.h"
+#include "transport_router.h"
 #include "domain.h"
 #include "map_renderer.h"
 
@@ -10,13 +11,15 @@
 
 namespace transport_catalogue {
 
+/**
+ * Обработчик json-документа с запросами для маршрутного справочника
+*/
 class JsonIOHandler final {
 public:
-	JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
-		transport_catalogue::MapRenderer& renderer, std::istream& is);
+	explicit JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
+		transport_catalogue::MapRenderer& renderer,
+		transport_catalogue::TransportRouter& router, std::istream& is);
 
-	// Запуск обработчика запросов, переданных в формате json в поток input_stream_
-	// Возвращает json-документ результатов запроса
 	[[nodiscard]] json::Document ProcessRequests();
 
 private:
@@ -24,31 +27,27 @@ private:
 	transport_catalogue::TransportCatalogue& catalogue_;
 	// Ссылка на MapRenderer
 	transport_catalogue::MapRenderer& renderer_;
+	// Ссылка на маршрутизатор
+	transport_catalogue::TransportRouter& router_;
 
 	std::istream& input_stream_; // Поток ввода запросов
 
-	// Обрабатывает запросы на внесение данных в справочник
 	void ProcessInsertationRequests(const json::Node& requests);
 
-	// Вносит в справочник информацию о маршруте из запроса
 	void AddRoute(const json::Dict& request_map);
-	// Вносит в справочник информацию об остановке из запроса
 	void AddStop(const json::Dict& request_map);
 
-	// Обрыбытвает поисковые запросы, возвращает json-документ с результатами
 	[[nodiscard]] json::Document ProcessStatRequests(const json::Node& requests) const;
 
-	// Возвращает json-узел с данными по остановке
 	[[nodiscard]] json::Node FindStop(const json::Dict& request_map) const;
-	// Возвращает json-узел с данными по маршруту
 	[[nodiscard]] json::Node FindRoute(const json::Dict& request_map) const;
-	// Возвращает json-узел с svg-документом карты справочника
 	[[nodiscard]] json::Node RenderMap(const json::Dict& request_map) const;
+	[[nodiscard]] json::Node BuildRoute(const json::Dict& request_map) const;
 
-	// Обрабатывает узел настроек визуализации карты 
 	void ProcessVisualisationSettings(const json::Node& settings);
-	// Возвращает цвет svg::Color, находящийся в переданном узле
 	[[nodiscard]] svg::Color GetColor(const json::Node& color_node) const;
+
+	void ProcessRouteSettings(const json::Node& settings);
 };
 
 } // namespace transport_catalogue

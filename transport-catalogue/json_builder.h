@@ -7,6 +7,9 @@
 
 namespace json {
 
+/**
+ * Класс создает json-документ
+*/
 class Builder {
 public:
     class ItemContext;
@@ -17,35 +20,26 @@ public:
 
     Builder();
 
-    // Вносит значение в крайний недостроенный узел
     Builder& Value(Node value);
 
-    // Начинает построение массива
     ArrayItemContext StartArray();
-    // Завершает построение массива
     Builder& EndArray();
 
-    // Начинает построение словаря
     DictItemContext StartDict();
-    // Завершает построение словаря
     Builder& EndDict();
-    // Начинает построение пары словаря [ключ, Node]
     KeyItemContext Key(const std::string& key);
 
-    // Возвращает результирующий узел
     Node Build();
 
 private:
     Node root_; // Конструируемый объект
     std::vector<Node*> nodes_stack_; // Контейнер крайних недостроенных узлов
 
-    // В зависимости от передаваемых параметров вносит значение Value,
-    // начинает построение словаря или массива в Builder
     Builder& AddItem(Node node, bool is_insertation_required = false);
 };
 
-/*
- * Классы, помогающие выявить часть ошибок еще на этапе компиляции
+/**
+ * Классы, помогающие выявить часть ошибок в создании json-документа на этапе компиляции
  */
 
 class Builder::ItemContext : public Builder {

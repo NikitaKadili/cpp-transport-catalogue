@@ -12,13 +12,17 @@ namespace transport_catalogue {
 using namespace std;
 
 JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
-	transport_catalogue::MapRenderer& renderer, std::istream& is)
+		transport_catalogue::MapRenderer& renderer,
+		transport_catalogue::TransportRouter& router, std::istream& is)
 	: catalogue_(catalogue)
 	, renderer_(renderer)
+	, router_(router)
 	, input_stream_(is) {}
 
-// Запуск обработчика запросов, переданных в формате json в поток input_stream_ 
-// Возвращает json-документ результатов запроса
+/**
+ * Запуск обработчика запросов, переданных в формате json в поток input_stream_
+ * Возвращает json-документ результатов запроса
+*/
 [[nodiscard]] json::Document JsonIOHandler::ProcessRequests() {
 	// Результирующий json-документ
 	const json::Document requests = json::Load(input_stream_);
@@ -41,6 +45,9 @@ JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 		else if (requests_type == "render_settings"s) {
 			ProcessVisualisationSettings(requests);
 		}
+		else if (requests_type == "routing_settings"s) {
+			ProcessRouteSettings(requests);
+		}
 		else if (requests_type == "stat_requests"s) {
 			output = ProcessStatRequests(requests);
 		}
@@ -52,7 +59,9 @@ JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 	return output;
 }
 
-// Обрабатывает запросы на внесение данных в справочник
+/**
+ * Обрабатывает запросы на внесение данных в справочник
+*/
 void JsonIOHandler::ProcessInsertationRequests(const json::Node& requests) {
 	// Если запросы находятся не в массиве - выбрасываем исключение invalid_argument,
 	// а если массив запросов пуст - выходим из метода
@@ -93,7 +102,9 @@ void JsonIOHandler::ProcessInsertationRequests(const json::Node& requests) {
 	}
 }
 
-// Вносит в справочник информацию об остановке из запроса
+/**
+ * Вносит в справочник информацию об остановке из запроса
+*/
 void JsonIOHandler::AddStop(const json::Dict& request_map) {
 	catalogue_.AddStop({
 		request_map.at("name").AsString(),
@@ -114,7 +125,9 @@ void JsonIOHandler::AddStop(const json::Dict& request_map) {
 		}
 	}
 }
-// Вносит в справочник информацию о маршруте из запроса
+/**
+ * Вносит в справочник информацию о маршруте из запроса
+*/
 void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 	vector<transport_catalogue::domain::Stop*> stops;
 
@@ -159,7 +172,9 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 		});
 }
 
-// Обрыбытвает поисковые запросы, возвращает json-документ с результатами
+/**
+ * Обрыбытвает поисковые запросы, возвращает json-документ с результатами
+*/
 [[nodiscard]] json::Document JsonIOHandler::ProcessStatRequests(const json::Node& requests) const {
 	// Если запросы находятся не в массиве - выбрасываем исключение invalid_argument,
 	// а если массив запросов пуст - выходим из метода
@@ -188,6 +203,9 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 		else if (request_map.AsDict().at("type"s) == "Map"s) {
 			results.push_back(RenderMap(request_map.AsDict()));
 		}
+		else if (request_map.AsDict().at("type"s) == "Route"s) {
+			results.push_back(BuildRoute(request_map.AsDict()));
+		}
 		/*
 		else {
 			throw invalid_argument("Unknown object type"s);
@@ -198,7 +216,9 @@ void JsonIOHandler::AddRoute(const json::Dict& request_map) {
 	return json::Document(results);
 }
 
-// Возвращает json-узел с данными по остановке
+/**
+ * Возвращает json-узел с данными по остановке
+*/
 json::Node JsonIOHandler::FindStop(const json::Dict& request_map) const {
 	std::optional<std::set<std::string_view>> stops =
 		catalogue_.GetRoutesOnStopInfo(request_map.at("name"s).AsString());
@@ -230,7 +250,9 @@ json::Node JsonIOHandler::FindStop(const json::Dict& request_map) const {
 		.EndDict()
 		.Build();
 }
-// Возвращает json-узел с данными по маршруту
+/**
+ * Возвращает json-узел с данными по маршруту
+*/
 json::Node JsonIOHandler::FindRoute(const json::Dict& request_map) const {
 	std::optional<transport_catalogue::domain::RouteInfo> route_info =
 		catalogue_.GetRouteInfo(request_map.at("name"s).AsString());
@@ -262,7 +284,9 @@ json::Node JsonIOHandler::FindRoute(const json::Dict& request_map) const {
 		.EndDict()
 		.Build();
 }
-// Возвращает json-узел с svg-документом карты справочника
+/**
+ * Возвращает json-узел с svg-документом карты справочника
+*/
 [[nodiscard]] json::Node JsonIOHandler::RenderMap(const json::Dict& request_map) const {
 	// Создаем поток для вывода svg-документа карты, рендерим её в этот поток
 	stringstream stream;
@@ -277,8 +301,78 @@ json::Node JsonIOHandler::FindRoute(const json::Dict& request_map) const {
 		.EndDict()
 		.Build();
 }
+/**
+ * Возвращает json-узел с информацией об оптимальном маршруте
+*/
+[[nodiscard]] json::Node JsonIOHandler::BuildRoute(const json::Dict& request_map) const {
+	// Строим маршрут в router_
+	const auto result = router_.BuildRoute(
+		request_map.at("from"s).AsString(), request_map.at("to"s).AsString()
+	);
 
-// Обрабатывает узел настроек визуализации карты
+	// Если такой маршрут не был найден - возвращаем шаблонный ответ
+	if (!result) {
+		return json::Builder{}
+			.StartDict()
+				.Key("request_id"s)
+				.Value(request_map.at("id"s))
+				.Key("error_message"s)
+				.Value("not found"s)
+			.EndDict()
+			.Build();
+	}
+
+	// Массив деталей маршрута
+	json::Array items_array;
+
+	// Итерируемся по ребрам, формируем соответствующие словари 
+	// и вносим их в массив деталей маршрута
+	for (const auto& edge : result.value().edges) {
+		if (edge.type == EdgeType::STOP) {
+			items_array.push_back(json::Builder{}
+				.StartDict()
+					.Key("type"s)
+					.Value("Wait"s)
+					.Key("stop_name"s)
+					.Value(string(edge.name))
+					.Key("time"s)
+					.Value(edge.weight)
+				.EndDict()
+				.Build()
+			);
+		}
+		else {
+			items_array.push_back(json::Builder{}
+				.StartDict()
+					.Key("type"s)
+					.Value("Bus"s)
+					.Key("bus"s)
+					.Value(string(edge.name))
+					.Key("span_count"s)
+					.Value(static_cast<int>(edge.span_count))
+					.Key("time"s)
+					.Value(edge.weight)
+				.EndDict()
+				.Build()
+			);
+		}
+	}
+
+	return json::Builder{}
+		.StartDict()
+			.Key("request_id"s)
+			.Value(request_map.at("id"s))
+			.Key("total_time"s)
+			.Value(result.value().time)
+			.Key("items"s)
+			.Value(items_array)
+		.EndDict()
+		.Build();
+}
+
+/**
+ * Обрабатывает узел настроек визуализации карты
+*/
 void JsonIOHandler::ProcessVisualisationSettings(const json::Node& settings) {
 	// Если настройки находятся не в словаре, или словарь настроек пуст 
 	// - выбрасываем исключение invalid_argument
@@ -322,7 +416,9 @@ void JsonIOHandler::ProcessVisualisationSettings(const json::Node& settings) {
 	// Задаем полученные настройки рендера
 	renderer_.SetRenderSettings(move(settings_struct));
 }
-// Возвращает цвет svg::Color, находящийся в переданном узле
+/**
+ * Возвращает цвет svg::Color, находящийся в переданном узле
+*/
 [[nodiscard]] svg::Color JsonIOHandler::GetColor(const json::Node& color_node) const {
 	// Если узел является строкой - возвращаем строку
 	if (color_node.IsString()) {
@@ -353,6 +449,25 @@ void JsonIOHandler::ProcessVisualisationSettings(const json::Node& settings) {
 	else {
 		throw invalid_argument("Wrong color array content"s);
 	}
+}
+
+/**
+ * Обрабатывает узел настроек конфигураций автобусов
+*/
+void JsonIOHandler::ProcessRouteSettings(const json::Node& settings) {
+	// Если настройки находятся не в словаре, или словарь настроек пуст 
+	// - выбрасываем исключение invalid_argument
+	if (!settings.IsDict()) {
+		throw invalid_argument("Visualisation settings node must be map"s);
+	}
+	else if (settings.AsDict().empty()) {
+		throw invalid_argument("Missing visualisation settings"s);
+	}
+
+	router_.SetRouteSettings({
+		settings.AsDict().at("bus_wait_time"s).AsInt(),
+		settings.AsDict().at("bus_velocity"s).AsInt()
+	});
 }
 
 } // namespace transport_catalogue

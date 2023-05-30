@@ -4,7 +4,9 @@
 
 namespace geo {
 
-// Структура географических координат
+/**
+ * Структура географических координат
+*/
 struct Coordinates {
     double lat; // Широта
     double lng; // Долгота
@@ -19,7 +21,6 @@ struct Coordinates {
     }
 };
 
-// Возвращает расстояние между двумя географическими координатами
 double ComputeDistance(Coordinates from, Coordinates to);
 
 }  // namespace geo

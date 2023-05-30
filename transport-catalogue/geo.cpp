@@ -5,10 +5,11 @@
 
 namespace geo {
 
-// Константа радиуса земли
-inline const int EARTH_RADIUS = 6371000;
+inline const int EARTH_RADIUS = 6371000; // Константа радиуса земли
 
-// Возвращает расстояние между двумя географическими координатами
+/**
+ * Возвращает расстояние между двумя географическими координатами
+*/
 double ComputeDistance(Coordinates from, Coordinates to) {
     using namespace std;
     if (from == to) {

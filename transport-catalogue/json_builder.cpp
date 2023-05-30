@@ -6,16 +6,22 @@ Builder::Builder() {
     nodes_stack_.emplace_back(&root_);
 }
 
-// Вносит значение в крайний недостроенный узел
+/**
+ * Вносит значение в крайний недостроенный узел
+*/
 Builder& Builder::Value(Node value) {
     return AddItem(std::move(value));
 }
 
-// Начинает построение узла массива
+/**
+ * Начинает построение узла массива
+*/
 Builder::ArrayItemContext Builder::StartArray() {
     return AddItem(Array(), true);
 }
-// Завершает построение узла массива
+/**
+ * Завершает построение узла массива
+*/
 Builder& Builder::EndArray() {
     // Если стек недостроенных узлов пуст или крайний незаконченный элемент
     // не является массивом - выбрасываем исключение logic_error
@@ -28,11 +34,15 @@ Builder& Builder::EndArray() {
     return *this;
 }
 
-// Начинает построение словаря
+/**
+ * Начинает построение словаря
+*/
 Builder::DictItemContext Builder::StartDict() {
     return AddItem(Dict(), true);
 }
-// Завершает построение словаря
+/**
+ * Завершает построение словаря
+*/
 Builder& Builder::EndDict() {
     // Если стек недостроенных узлов пуст или крайний незаконченный элемент
     // не является словарем - выбрасываем исключение logis_insertation_requiredic_error
@@ -44,7 +54,9 @@ Builder& Builder::EndDict() {
 
     return *this;
 }
-// Строит пару словаря [ключ, Node]
+/**
+ * Строит пару словаря [ключ, Node]
+*/
 Builder::KeyItemContext Builder::Key(const std::string& key) {
     // Если стек недостроенных узлов пуст или крайний незаконченный элемент
     // не является словарем - выбрасываем исключение logic_error
@@ -57,7 +69,9 @@ Builder::KeyItemContext Builder::Key(const std::string& key) {
     return *this;
 }
 
-// Возвращает результирующий узел
+/**
+ * Возвращает результирующий узел
+*/
 Node Builder::Build() {
     // Если есть незаконченные узлы - выбрасываем исключение logic_error
     if (!nodes_stack_.empty()) {
@@ -68,8 +82,10 @@ Node Builder::Build() {
     return root_;
 }
 
-// В зависимости от передаваемых параметров вносит значение Value,
-// начинает построение словаря или массива в Builder
+/**
+ * В зависимости от передаваемых параметров вносит значение Value,
+ * начинает построение словаря или массива в Builder
+*/
 Builder& Builder::AddItem(Node node, bool is_insertation_required) {
     // Если стек недостроенных узлов пуст - выбрасываем исключение
     if (nodes_stack_.empty()) {
@@ -97,7 +113,7 @@ Builder& Builder::AddItem(Node node, bool is_insertation_required) {
     return *this;
 }
 
-/* 
+/**
  * Реализации вспомогательных классов
  */
 
