@@ -23,9 +23,10 @@ struct RouteSettings final {
 */
 enum class EdgeType { BUS, STOP };
 /**
- * Содержание ребра орграфа: вес, точка отправления, точка прибытия, количество остановок
+ * Содержание ребра орграфа
 */
 struct EdgeInfo final {
+    // EdgeInfo() = default;
     EdgeInfo(double w, std::string_view n, size_t s, EdgeType t)
         : weight(w)
         , name(n)
@@ -73,7 +74,15 @@ class TransportRouter final {
 public:
     explicit TransportRouter(TransportCatalogue& transport_catalogue);
 
+    void InitializeGraphRouter();
+
     void SetRouteSettings(RouteSettings route_settings);
+    void SetEdges(const std::vector<EdgeInfo>& edges);
+    void SetGraphAndRouter(const graph::DirectedWeightedGraph<double>& orgraph);
+
+    const RouteSettings& GetRouteSettings() const;
+    const std::vector<EdgeInfo>& GetEdges() const;
+    const graph::DirectedWeightedGraph<double>& GetGraph() const;
 
     std::optional<RouteResult> BuildRoute(std::string_view from, std::string_view to);
 
@@ -89,8 +98,6 @@ private:
 
     graph::DirectedWeightedGraph<double> GetFilledOrgraph();
     graph::DirectedWeightedGraph<double> CreateVertexesAndOrgraph();
-
-    void InitializeGraphRouter();
 
     double CountTime(double distance);
 };

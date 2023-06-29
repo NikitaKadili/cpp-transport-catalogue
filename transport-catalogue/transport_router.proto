@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package transport_catalogue_ser;
+
+/**
+ *  Конфигурация автобусов для расчета маршрутов
+*/
+message RouteSettings {
+    int32 wait_time = 1;
+    int32 velocity = 2;
+}
+
+/**
+ *  Информация о ребре
+*/
+message EdgeInfo {
+    double weight = 1;
+    uint32 name_id = 2;
+    uint64 span_count = 3;
+    int32 type = 4; // 1 - BUS, 2 - STOP
+}
+/**
+ *  Информация о вершинах и ребрах для маршрутизатора
+*/
+message RouterInfo {
+    repeated EdgeInfo edges = 1;
+}

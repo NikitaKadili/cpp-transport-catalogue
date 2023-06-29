@@ -1,27 +1,38 @@
-#include "json_reader.h"
+#include <fstream>
+#include <iostream>
+#include <string_view>
 #include "transport_catalogue.h"
-#include "transport_router.h"
 #include "request_handler.h"
 
-#include <iostream>
+using namespace std::literals;
 
-using namespace std;
-
-int main() {
-	// Объявляем транспортный справочник
-	transport_catalogue::TransportCatalogue catalogue;
-	// Объявляем рендерер карты справочника
-	transport_catalogue::MapRenderer renderer(catalogue);
-	// Объявляем маршрутизатор транспортного справочника
-	transport_catalogue::TransportRouter router(catalogue);
-
-	// Объявляем читалку json-файла и поток ввода
-	transport_catalogue::JsonIOHandler json_reader(catalogue, renderer, router, cin);
-
-	// Выводим результат в поток cout
-	PrintJsonResultDocument(json_reader, cout);
-	
-	return 0;
+void PrintUsage(std::ostream& stream = std::cerr) {
+    stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
 }
 
-// IO: < input.json > output.json
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        PrintUsage();
+        return 1;
+    }
+
+    const std::string_view mode(argv[1]);
+
+    // Объявляем транспортный справочник
+    transport_catalogue::TransportCatalogue catalogue;
+    // Объявляем обработчик запросов
+    transport_catalogue::Handler handler(catalogue);
+
+    if (mode == "make_base"sv) {
+        // Выполняем сериализацию данных
+        handler.SerializeData();
+    }
+    else if (mode == "process_requests"sv) {
+        // Выполняем десериализацию данных и обработку запросов
+        handler.DeserializeAndProcessData();
+    }
+    else {
+        PrintUsage();
+        return 1;
+    }
+}

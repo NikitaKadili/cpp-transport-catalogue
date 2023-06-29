@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package transport_catalogue_ser;
+
+import "graph.proto";
+import "map_renderer.proto";
+import "transport_router.proto";
+
+/**
+ * Содержит основную информацию о остановке 
+*/
+message Stop {
+    string name = 1; // Название остановки
+    double latitude = 2; // Широта
+	double longitude = 3; // Долгота
+}
+
+/**
+ * Содержит основную информацию о маршруте 
+*/
+message Route {
+    string name = 1; // Название маршрута
+    bool is_round = 2; // true, если маршрут является кольцевым
+    repeated uint32 stops_ids = 3; // Массив id остановок маршрута
+}
+
+/**
+ * Пары расстояний между остановками 
+*/
+message Distance {
+    uint32 from_id = 1;
+    uint32 to_id = 2;
+    double dist = 3;
+}
+
+/**
+ * Содержит базовую информацию траснпортного справочника 
+*/
+message TransportCatalogue {
+    // Информация для транспортного справочника
+    repeated Stop stops = 1;
+    repeated Route routes = 2;
+    repeated Distance distances = 3;
+
+    // Информация для рендерера
+    MapVisualizationSettings renderer_settings = 4;
+
+    // Информация для графа и маршрутизатора
+    RouteSettings router_settings = 5;
+    RouterInfo router_info = 6;
+    Graph graph = 7;
+}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package transport_catalogue_ser;
+
+import "svg.proto";
+
+/**
+ * Структура настроек визуализации карты 
+*/
+message MapVisualizationSettings {
+    double width = 1; // Ширина изображения в пикселях
+    double height = 2; // Высота изображения в пикселях
+
+    double padding = 3; // Отступ краёв карты от границ
+
+    double line_width = 4; // Толщина линий маршрутов
+    double stop_radius = 5; // Радиус окружностей остановок
+
+    int32 bus_label_font_size = 6; // Размер текста маршрутов
+    repeated double bus_label_offset = 7; // Смещение надписи с маршрута
+
+    int32 stop_label_font_size = 8; // Размер текста остановок
+    repeated double stop_label_offset = 9; // Смещение названия остановки
+
+    Color underlayer_color = 10; // Цвет подложки
+    double underlayer_width = 11; // Толщина подложки
+
+    repeated Color color_palette = 12; // // Цветовая палитра
+}

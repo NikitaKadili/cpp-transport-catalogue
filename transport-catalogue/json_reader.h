@@ -1,11 +1,13 @@
 #pragma once
 
+#include <optional>
 #include "json.h"
 #include "svg.h"
 #include "transport_catalogue.h"
 #include "transport_router.h"
 #include "domain.h"
 #include "map_renderer.h"
+#include "serialization.h"
 
 #include <iostream>
 
@@ -16,11 +18,17 @@ namespace transport_catalogue {
 */
 class JsonIOHandler final {
 public:
+	/**
+	 * Режим обработки
+	*/
+	enum class RequestMode { SER_SETTINGS, MAKE_BASE, PROCESS_REQUESTS };
+
 	explicit JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 		transport_catalogue::MapRenderer& renderer,
-		transport_catalogue::TransportRouter& router, std::istream& is);
+		transport_catalogue::TransportRouter& router, 
+		transport_catalogue::Serializator& serializator, std::istream& is);
 
-	[[nodiscard]] json::Document ProcessRequests();
+	json::Document ProcessRequests(RequestMode mode);
 
 private:
 	// Ссылка на транспортный справочник
@@ -29,8 +37,12 @@ private:
 	transport_catalogue::MapRenderer& renderer_;
 	// Ссылка на маршрутизатор
 	transport_catalogue::TransportRouter& router_;
+	// Ссылка на сериализатор
+	transport_catalogue::Serializator& serializator_;
 
 	std::istream& input_stream_; // Поток ввода запросов
+
+	std::optional<json::Document> requests_ = std::nullopt; // Документ запросов
 
 	void ProcessInsertationRequests(const json::Node& requests);
 
@@ -48,6 +60,8 @@ private:
 	[[nodiscard]] svg::Color GetColor(const json::Node& color_node) const;
 
 	void ProcessRouteSettings(const json::Node& settings);
+
+	void ProcessSerializationSettings(const json::Node& settings);
 };
 
 } // namespace transport_catalogue

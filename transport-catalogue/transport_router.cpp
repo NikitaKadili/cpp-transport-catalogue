@@ -24,6 +24,54 @@ TransportRouter::TransportRouter(TransportCatalogue& transport_catalogue)
 void TransportRouter::SetRouteSettings(RouteSettings route_settings) {
     route_settings_ = std::move(route_settings);
 }
+/**
+ * Задает вектор вершин
+*/
+void TransportRouter::SetEdges(const std::vector<EdgeInfo>& edges) {
+    edges_ = edges;
+}
+/**
+ * Задает орграф и маршрутизатор
+*/
+void TransportRouter::SetGraphAndRouter(const graph::DirectedWeightedGraph<double>& orgraph) {
+    // Если маршрутизатор уже задан - прекращаем инициилизацию
+    if (router_) {
+        return;
+    }
+    // Задаем десериализованный орграф
+    orgraph_ = orgraph;
+
+    // Задаем вершины из десериализованных данных траснпортного справочника
+    size_t vertex_count = 0;
+    for (const auto& stop : transport_catalogue_.GetStops()) {
+        Vertex in = { stop.name, VertexType::IN, vertex_count++ };
+        Vertex out = { stop.name, VertexType::OUT, vertex_count++ };
+
+        vertexes_[stop.name] = { in, out };
+    }
+
+    // Инициилизируем маршрутизатор
+    router_.emplace(orgraph_);
+}
+
+/**
+ * Возвращает константную ссылку на структуру настроен маршрутизатора
+*/
+const RouteSettings& TransportRouter::GetRouteSettings() const {
+    return route_settings_;
+}
+/**
+ * Возвращает константную ссылку на массив всех ребер
+*/
+const std::vector<EdgeInfo>& TransportRouter::GetEdges() const {
+    return edges_;
+}
+/**
+ * Возвращает константную ссылку на орграф
+*/
+const graph::DirectedWeightedGraph<double>& TransportRouter::GetGraph() const {
+    return orgraph_;
+}
 
 /**
  * Возвращает общую информацию о построенном маршруте
@@ -147,7 +195,7 @@ graph::DirectedWeightedGraph<double> TransportRouter::CreateVertexesAndOrgraph()
 }
 
 /**
- * Инициализирует router_
+ * Инициализирует маршрутизатор
 */
 void TransportRouter::InitializeGraphRouter() {
     // Нельзя инициилизировать router_ повторно

@@ -48,10 +48,14 @@ public:
     MapRenderer(const transport_catalogue::TransportCatalogue& database);
 
     // Задает настройки визуализации
-    void SetRenderSettings(const MapVisualisationSettings& settings);
+    void SetRenderSettings(MapVisualisationSettings settings);
 
     // Рендер карты транспортного справочника
     void Rend(std::ostream& os);
+
+    // Возвращает константную ссылку на настройки визуализации
+    const MapVisualisationSettings& GetSettings() const;
+
 private:
     MapVisualisationSettings settings_; // Настройки визуализации
     const transport_catalogue::TransportCatalogue& catalogue_; // Ссылка на базу данных

@@ -16,8 +16,8 @@ MapRenderer::MapRenderer(const transport_catalogue::TransportCatalogue& catalogu
     : catalogue_(catalogue) {}
 
 // Задает настройки визуализации
-void MapRenderer::SetRenderSettings(const MapVisualisationSettings& settings) {
-    settings_ = settings;
+void MapRenderer::SetRenderSettings(MapVisualisationSettings settings) {
+    settings_ = std::move(settings);
 }
 
 // Рендер карты транспортного справочника
@@ -43,6 +43,11 @@ void MapRenderer::Rend(ostream& os) {
     RenderStops(projector);
 
     Print(os);
+}
+
+// Возвращает константную ссылку на настройки визуализации
+const MapVisualisationSettings& MapRenderer::GetSettings() const {
+    return settings_;
 }
 
 // Выводит итоговый svg-документа в указанный поток

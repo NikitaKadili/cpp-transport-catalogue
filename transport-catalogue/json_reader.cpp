@@ -1,7 +1,6 @@
 #include "json_builder.h"
 #include "json_reader.h"
 
-#include <optional>
 #include <set>
 #include <sstream>
 #include <string_view>
@@ -13,47 +12,61 @@ using namespace std;
 
 JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 		transport_catalogue::MapRenderer& renderer,
-		transport_catalogue::TransportRouter& router, std::istream& is)
+		transport_catalogue::TransportRouter& router, 
+		transport_catalogue::Serializator& serializator, std::istream& is)
 	: catalogue_(catalogue)
 	, renderer_(renderer)
 	, router_(router)
+	, serializator_(serializator)
 	, input_stream_(is) {}
 
 /**
  * Запуск обработчика запросов, переданных в формате json в поток input_stream_
+ * mode отвечает за тип обработки входных данных (для сериализации или десериализации)
  * Возвращает json-документ результатов запроса
 */
-[[nodiscard]] json::Document JsonIOHandler::ProcessRequests() {
+json::Document JsonIOHandler::ProcessRequests(RequestMode mode) {
 	// Результирующий json-документ
-	const json::Document requests = json::Load(input_stream_);
+	if (!requests_) {
+		requests_ = json::Load(input_stream_);
+	}
 	json::Document output; // Результирующий json-документ
 
 	// Если переданный документ не содержит словаря запросов, либо переданный
 	// словарь пуст - возвращаем пустой документ
-	if (!requests.GetRoot().IsDict()) {
+	if (!requests_.value().GetRoot().IsDict()) {
 		return output;
 	}
-	else if (requests.GetRoot().AsDict().empty()) {
+	else if (requests_.value().GetRoot().AsDict().empty()) {
+		return output;
+	}
+
+	// Если обработчик запущен с флагом SER_SETTINGS (настройки сериализации) - 
+	// считываем только их и возвращаем пустой документ
+	if (mode == RequestMode::SER_SETTINGS) {
+		ProcessSerializationSettings(
+			requests_.value().GetRoot().AsDict().at("serialization_settings")
+		);
 		return output;
 	}
 
 	// Итерируемся по запросам, отправляем в соответствующие методы их содержание
-	for (const auto& [requests_type, requests] : requests.GetRoot().AsDict()) {
-		if (requests_type == "base_requests"s) {
+	for (const auto& [requests_type, requests] : requests_.value().GetRoot().AsDict()) {
+		if (mode == RequestMode::MAKE_BASE && requests_type == "base_requests"s) {
 			ProcessInsertationRequests(requests);
 		}
-		else if (requests_type == "render_settings"s) {
+		else if (mode == RequestMode::MAKE_BASE && requests_type == "render_settings"s) {
 			ProcessVisualisationSettings(requests);
 		}
-		else if (requests_type == "routing_settings"s) {
+		else if (mode == RequestMode::MAKE_BASE && requests_type == "routing_settings"s) {
 			ProcessRouteSettings(requests);
 		}
-		else if (requests_type == "stat_requests"s) {
+		else if (mode == RequestMode::PROCESS_REQUESTS && requests_type == "stat_requests"s) {
 			output = ProcessStatRequests(requests);
 		}
-		else {
-			throw invalid_argument("Wrong request type"s);
-		}
+		// else {
+		// 	throw invalid_argument("Wrong request type"s);
+		// }
 	}
 
 	return output;
@@ -89,11 +102,9 @@ void JsonIOHandler::ProcessInsertationRequests(const json::Node& requests) {
 			// добавления в справочник всех остановок
 			routes.push_back(&request_map.AsDict());
 		}
-		/*
-		else {
-			throw invalid_argument("Unknown object type"s);
-		}
-		*/
+		// else {
+		// 	throw invalid_argument("Unknown object type"s);
+		// }
 	}
 
 	// Итерируемся по запросам на добавление маршрутов
@@ -467,6 +478,24 @@ void JsonIOHandler::ProcessRouteSettings(const json::Node& settings) {
 	router_.SetRouteSettings({
 		settings.AsDict().at("bus_wait_time"s).AsInt(),
 		settings.AsDict().at("bus_velocity"s).AsInt()
+	});
+}
+
+/**
+ * Обрабатывает узел настроек сериалазтора данных
+*/
+void JsonIOHandler::ProcessSerializationSettings(const json::Node& settings) {
+	// Если настройки находятся не в словаре, или словарь настроек пуст 
+	// - выбрасываем исключение invalid_argument
+	if (!settings.IsDict()) {
+		throw invalid_argument("Serialization settings node must be map"s);
+	}
+	else if (settings.AsDict().empty()) {
+		throw invalid_argument("Missing serialization settings"s);
+	}
+	
+	serializator_.SetSettings({
+		settings.AsDict().at("file"s).AsString(),
 	});
 }
 

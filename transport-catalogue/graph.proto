@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package transport_catalogue_ser;
+
+/**
+ *  Ребро орграфа
+*/
+message Edge {
+    uint64 from = 1;
+    uint64 to = 2;
+    double weight = 3;
+}
+/**
+ *  Ребра из вершины
+*/
+message Incidence {
+    repeated uint64 incidence = 1;
+}
+
+/**
+ *  Содержимое орграфа
+*/
+message Graph {
+    repeated Edge edges = 1; // Список ребер
+    repeated Incidence incidence_lists = 2; // Списки смежностей
+}

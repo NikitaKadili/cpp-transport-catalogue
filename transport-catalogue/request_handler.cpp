@@ -1,23 +1,68 @@
 #include "request_handler.h"
 
-/**
- * Добавляет остановку в транспортный справочник
-*/
-void AddStopToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
-	const transport_catalogue::domain::Stop& stop) {
-	catalogue.AddStop(stop);
-}
-/**
- * Добавляет маршрут в транспортный справочник
-*/
-void AddRouteToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
-	const transport_catalogue::domain::Route& route) {
-	catalogue.AddRoute(route);
-}
+namespace transport_catalogue {
 
 /**
- * Выводит json-документ с результатами запросов в out_stream
+ * Базовый конструктор
 */
-void PrintJsonResultDocument(transport_catalogue::JsonIOHandler& json_io, std::ostream& os) {
-	json::Print(json_io.ProcessRequests(), os);
+Handler::Handler(TransportCatalogue& catalogue)
+	: catalogue_(catalogue)
+	, renderer_(catalogue_)
+	, router_(catalogue_)
+	, serializator_(catalogue_, renderer_, router_)
+{}
+
+/**
+ * Сериализует данные
+*/
+void Handler::SerializeData() {
+	// Инициилизируем обработчик json-запросов
+	JsonIOHandler json_handler(
+		catalogue_,
+		renderer_,
+		router_,
+		serializator_,
+		std::cin
+	);
+	
+	// Считываем настройки сериализации
+	json_handler.ProcessRequests(JsonIOHandler::RequestMode::SER_SETTINGS);
+	// Заполняем базу транспортного справочника в режиме MAKE_BASE
+	json_handler.ProcessRequests(JsonIOHandler::RequestMode::MAKE_BASE);
+	
+	// Инициилизируем маршрутизатор
+	router_.InitializeGraphRouter();
+
+	// Сериализуем полученные данные
+	if (!serializator_.Serialize()) {
+		std::cerr << "Возникла ошибка сериализации" << std::endl;
+	}
 }
+/**
+ * Десериализует данные, выводит резальтат обработки запросов
+*/
+void Handler::DeserializeAndProcessData() {
+	// Инициилизируем обработчик json-запросов
+	JsonIOHandler json_handler(
+		catalogue_,
+		renderer_,
+		router_,
+		serializator_,
+		std::cin
+	);
+
+	// Считываем настройки сериализации из запроса
+	json_handler.ProcessRequests(JsonIOHandler::RequestMode::SER_SETTINGS);
+
+	// Десериализуем данные
+	if (!serializator_.Deserialize()) {
+		std::cerr << "Возникла ошибка десериализации" << std::endl;
+		return;
+	}
+
+	// Обрабатываем запросы в режиме PROCESS_REQUESTS и выводим результат
+	json::Document result = json_handler.ProcessRequests(JsonIOHandler::RequestMode::PROCESS_REQUESTS);
+	json::Print(result, std::cout);
+}
+
+} // namespace transport_catalogue

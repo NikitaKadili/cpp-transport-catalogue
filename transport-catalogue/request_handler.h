@@ -1,13 +1,32 @@
 #pragma once
 
 #include "transport_catalogue.h"
+#include "transport_router.h"
+#include "map_renderer.h"
+#include "json.h"
 #include "json_reader.h"
+#include "serialization.h"
 
 #include <iostream>
 
-void AddStopToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
-	const transport_catalogue::domain::Stop& stop);
-void AddRouteToCatalogue(transport_catalogue::TransportCatalogue& catalogue,
-	const transport_catalogue::domain::Route& route);
+namespace transport_catalogue {
 
-void PrintJsonResultDocument(transport_catalogue::JsonIOHandler& json_io, std::ostream& os);
+class Handler final {
+public:
+	Handler(TransportCatalogue& catalogue);
+
+	void SerializeData();
+	void DeserializeAndProcessData();
+
+private:
+	// Ссылка на транспортный справочник
+	TransportCatalogue& catalogue_;
+	// Рендерер карты справочника
+	MapRenderer renderer_;
+	// Маршрутизатор транспортного справочника
+	TransportRouter router_;
+	// Сериализатор данных транспортного справочника
+	Serializator serializator_;
+};
+
+} // namespace transport_catalogue

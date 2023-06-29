@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package transport_catalogue_ser;
+
+/**
+ *  Типы цветов
+*/
+message Rgb {
+    double r = 1;
+    double g = 2;
+    double b = 3;
+}
+message Rgba {
+    double r = 1;
+    double g = 2;
+    double b = 3;
+    double opacity = 4;
+}
+message StrColor {
+    string color = 1;
+}
+message NoneColor {}
+
+/**
+ * Значение цвета
+*/
+message Color {
+    oneof color_type {
+        NoneColor none_color = 1;
+        StrColor str_color = 2;
+        Rgb rgb_color = 3;
+        Rgba rgba_color = 4;
+    }
+}
