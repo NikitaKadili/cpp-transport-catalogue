@@ -21,19 +21,67 @@ JsonIOHandler::JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 	, input_stream_(is) {}
 
 /**
- * Запуск обработчика запросов, переданных в формате json в поток input_stream_
- * mode отвечает за тип обработки входных данных (для сериализации или десериализации)
- * Возвращает json-документ результатов запроса
+ * Обрабатывает запрос на установку настроек сериализации
 */
-json::Document JsonIOHandler::ProcessRequests(RequestMode mode) {
-	// Результирующий json-документ
+void JsonIOHandler::ProcessSerializationSettingsRequest() {
+	if (!requests_) {
+		requests_ = json::Load(input_stream_);
+	}
+
+	// Если переданный документ не содержит словаря запросов, либо переданный
+	// словарь пуст - прерываем обработку запроса
+	if (!requests_.value().GetRoot().IsDict()) {
+		return;
+	}
+	else if (requests_.value().GetRoot().AsDict().empty()) {
+		return;
+	}
+
+	ProcessSerializationSettings(
+		requests_.value().GetRoot().AsDict().at("serialization_settings")
+	);
+}
+/**
+ * Обрабатывает запросы на создание базы транспортного справочника
+*/
+void JsonIOHandler::ProcessMakeBaseRequests() {
+	if (!requests_) {
+		requests_ = json::Load(input_stream_);
+	}
+
+	// Если переданный документ не содержит словаря запросов, либо переданный
+	// словарь пуст - прерываем обработку запроса
+	if (!requests_.value().GetRoot().IsDict()) {
+		return;
+	}
+	else if (requests_.value().GetRoot().AsDict().empty()) {
+		return;
+	}
+
+	// Итерируемся по запросам, отправляем в соответствующие методы их содержание
+	for (const auto& [requests_type, requests] : requests_.value().GetRoot().AsDict()) {
+		if (requests_type == "base_requests"s) {
+			ProcessInsertationRequests(requests);
+		}
+		else if (requests_type == "render_settings"s) {
+			ProcessVisualisationSettings(requests);
+		}
+		else if (requests_type == "routing_settings"s) {
+			ProcessRouteSettings(requests);
+		}
+	}
+}
+/**
+ * Обрыбытвает запросы на поиск в транспортном справочнике
+*/
+json::Document JsonIOHandler::ProcessStatsRequests() {
 	if (!requests_) {
 		requests_ = json::Load(input_stream_);
 	}
 	json::Document output; // Результирующий json-документ
 
 	// Если переданный документ не содержит словаря запросов, либо переданный
-	// словарь пуст - возвращаем пустой документ
+	// словарь пуст - прерываем обработку запроса
 	if (!requests_.value().GetRoot().IsDict()) {
 		return output;
 	}
@@ -41,32 +89,11 @@ json::Document JsonIOHandler::ProcessRequests(RequestMode mode) {
 		return output;
 	}
 
-	// Если обработчик запущен с флагом SER_SETTINGS (настройки сериализации) - 
-	// считываем только их и возвращаем пустой документ
-	if (mode == RequestMode::SER_SETTINGS) {
-		ProcessSerializationSettings(
-			requests_.value().GetRoot().AsDict().at("serialization_settings")
-		);
-		return output;
-	}
-
 	// Итерируемся по запросам, отправляем в соответствующие методы их содержание
 	for (const auto& [requests_type, requests] : requests_.value().GetRoot().AsDict()) {
-		if (mode == RequestMode::MAKE_BASE && requests_type == "base_requests"s) {
-			ProcessInsertationRequests(requests);
-		}
-		else if (mode == RequestMode::MAKE_BASE && requests_type == "render_settings"s) {
-			ProcessVisualisationSettings(requests);
-		}
-		else if (mode == RequestMode::MAKE_BASE && requests_type == "routing_settings"s) {
-			ProcessRouteSettings(requests);
-		}
-		else if (mode == RequestMode::PROCESS_REQUESTS && requests_type == "stat_requests"s) {
+		if (requests_type == "stat_requests"s) {
 			output = ProcessStatRequests(requests);
 		}
-		// else {
-		// 	throw invalid_argument("Wrong request type"s);
-		// }
 	}
 
 	return output;

@@ -26,9 +26,9 @@ void Handler::SerializeData() {
 	);
 	
 	// Считываем настройки сериализации
-	json_handler.ProcessRequests(JsonIOHandler::RequestMode::SER_SETTINGS);
-	// Заполняем базу транспортного справочника в режиме MAKE_BASE
-	json_handler.ProcessRequests(JsonIOHandler::RequestMode::MAKE_BASE);
+	json_handler.ProcessSerializationSettingsRequest();
+	// Заполняем базу транспортного справочника
+	json_handler.ProcessMakeBaseRequests();
 	
 	// Инициилизируем маршрутизатор
 	router_.InitializeGraphRouter();
@@ -52,7 +52,7 @@ void Handler::DeserializeAndProcessData() {
 	);
 
 	// Считываем настройки сериализации из запроса
-	json_handler.ProcessRequests(JsonIOHandler::RequestMode::SER_SETTINGS);
+	json_handler.ProcessSerializationSettingsRequest();
 
 	// Десериализуем данные
 	if (!serializator_.Deserialize()) {
@@ -60,8 +60,8 @@ void Handler::DeserializeAndProcessData() {
 		return;
 	}
 
-	// Обрабатываем запросы в режиме PROCESS_REQUESTS и выводим результат
-	json::Document result = json_handler.ProcessRequests(JsonIOHandler::RequestMode::PROCESS_REQUESTS);
+	// Обрабатываем запросы и выводим результат
+	json::Document result = json_handler.ProcessStatsRequests();
 	json::Print(result, std::cout);
 }
 

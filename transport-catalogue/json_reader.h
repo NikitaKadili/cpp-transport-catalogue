@@ -18,17 +18,14 @@ namespace transport_catalogue {
 */
 class JsonIOHandler final {
 public:
-	/**
-	 * Режим обработки
-	*/
-	enum class RequestMode { SER_SETTINGS, MAKE_BASE, PROCESS_REQUESTS };
-
 	explicit JsonIOHandler(transport_catalogue::TransportCatalogue& catalogue,
 		transport_catalogue::MapRenderer& renderer,
 		transport_catalogue::TransportRouter& router, 
 		transport_catalogue::Serializator& serializator, std::istream& is);
 
-	json::Document ProcessRequests(RequestMode mode);
+	void ProcessSerializationSettingsRequest();
+	void ProcessMakeBaseRequests();
+	[[nodiscard]] json::Document ProcessStatsRequests();
 
 private:
 	// Ссылка на транспортный справочник
