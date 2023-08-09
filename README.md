@@ -12,7 +12,7 @@ cmake --build .
 ## Запуск программы
 Для создания базы данных транспортного справочника необходимо передать в качестве параметра make_base, данные в JSON-формате. Пример:
 ```
-> transport_catalogue make_base <data.json
+> ./transport_catalogue make_base <data.json
 ```
 Пример содержания файла `data.json`:
 ```
@@ -88,7 +88,7 @@ cmake --build .
 ```
 Для отправки запросов на построение маршрутов и карты, необходимо передать параметр process_requests и сами запросы в json-формате:
 ```
-> transport_catalogue process_requests <requests.json >out.json
+> ./transport_catalogue process_requests <requests.json >out.json
 ```
 Пример возможного содержимого `requests.json`:
 ```
